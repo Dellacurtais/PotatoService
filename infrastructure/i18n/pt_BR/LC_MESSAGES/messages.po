@@ -1,0 +1,86 @@
+msgid "Exception"
+msgstr "Erro desconhecido"
+
+msgid "ServerException"
+msgstr "Erro do lado do servidor"
+
+msgid "BusinessException"
+msgstr "Erro de negócio"
+
+msgid "EnvironmentException"
+msgstr "Erro de ambiente"
+
+msgid "InvalidRequestException"
+msgstr "Requisição inválida"
+
+msgid "RepositoryEntityNotFoundException"
+msgstr "Repositório não possui entitade definida"
+
+msgid "O campo %s é inválido"
+msgstr ""
+
+msgid "O campo %s deve ser um decimal"
+msgstr ""
+
+msgid "O campo %s é inválido"
+msgstr ""
+
+msgid "O campo %s deve ser um decimal"
+msgstr ""
+
+msgid "O campo %s deve ser uma data no futuro"
+msgstr ""
+
+msgid "O campo %s não pode ser uma data no passado"
+msgstr ""
+
+msgid "O campo %s não pode maior que %d"
+msgstr ""
+
+msgid "O campo %s não pode menor que %d"
+msgstr ""
+
+msgid "O campo %s deve ser negativo"
+msgstr ""
+
+msgid "O campo %s deve ser menor ou igual a zero"
+msgstr ""
+
+msgid "O campo %s não pode estar em branco"
+msgstr ""
+
+msgid "O campo %s não pode estar vazio"
+msgstr ""
+
+msgid "O campo %s não pode estar nulo"
+msgstr ""
+
+msgid "O campo %s deve ser numérico"
+msgstr ""
+
+msgid "O campo %s deve ser uma data no passado"
+msgstr ""
+
+msgid "O campo %s deve ser uma data no passado ou presente"
+msgstr ""
+
+msgid "O campo %s deve ser positivo"
+msgstr ""
+
+msgid "O campo %s deve ser maior que zero"
+msgstr ""
+
+msgid "O campo %s deve conter mais de %d caracteres"
+msgstr ""
+
+msgid "O campo %s deve conter no máximo %d caracteres"
+msgstr ""
+
+msgid "O campo %s deve ser um e-mail"
+msgstr ""
+
+msgid "O campo %s deve ser uma URL"
+msgstr ""
+
+msgid "Senha deve conter um número, letra maiúscula, letra miniúscula e um caracter especial"
+msgstr ""
