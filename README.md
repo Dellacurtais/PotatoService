@@ -2,7 +2,7 @@
 New version of PotatoFramework
 
 
-# About it [Generated with Google Translate haha]
+# About it
 PotatoService try implement the CQRS pattern, but it is still in first steps.
 
 * **PHP Version Requirement:** 8.1 or higher
