@@ -20,14 +20,16 @@ class Routes {
 
             foreach($reflectionController->getMethods() as $method) {
                 $attribute = current($method->getAttributes(Route::class, \ReflectionAttribute::IS_INSTANCEOF));
-                $route = $attribute->newInstance();
-                $routeMap = new RouteMap($route->type, $route->route, [$controller, $method->getName()], $route->alias, $route->headers, $route->requireHeader);
-                $routeMap->setStatusCode($route->code);
-                if ($routeMap->validate(request()->requestUri)){
-                    request()->activeRoute = $routeMap;
-                }
+                if ($attribute){
+                    $route = $attribute->newInstance();
+                    $routeMap = new RouteMap($route->type, $route->route, [$controller, $method->getName()], $route->alias, $route->headers, $route->requireHeader);
+                    $routeMap->setStatusCode($route->code);
+                    if ($routeMap->validate(request()->requestUri)){
+                        request()->activeRoute = $routeMap;
+                    }
 
-                $selfInstance->routes[] = $routeMap;
+                    $selfInstance->routes[] = $routeMap;
+                }
             }
         }
     }
