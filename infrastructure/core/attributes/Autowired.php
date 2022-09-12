@@ -5,7 +5,6 @@ namespace infrastructure\core\attributes;
 use Attribute;
 use infrastructure\core\exception\BusinessException;
 use infrastructure\core\exception\ServerException;
-use infrastructure\core\exception\SetRepositoryAttributeNotFoundException;
 
 #[attribute(Attribute::TARGET_PROPERTY)]
 class Autowired {
