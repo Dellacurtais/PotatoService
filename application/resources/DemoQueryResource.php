@@ -17,12 +17,12 @@ class DemoQueryResource {
     public TesteService $testeService;
 
     #[Transactional]
-    #[Route(route: 'Home', code: StatusCode::OK, type: HttpRequest::GET, headers: [ ContentType::CONTENT_JS ])]
+    #[Route(route: 'Home', code: StatusCode::OK, type: HttpRequest::GET, headers: [ ContentType::CONTENT_JSON ])]
     public function exampleRouting(){
         $this->testeService->execute();
     }
 
-    #[Route(route: 'testMapRequest', code: StatusCode::OK, type: HttpRequest::GET, headers: [ ContentType::CONTENT_JS ])]
+    #[Route(route: 'testMapRequest', code: StatusCode::OK, type: HttpRequest::GET, headers: [ ContentType::CONTENT_JSON ])]
     public function exampleWithMapRequest(DemoResquest $demoResquest){
         echo $demoResquest->nome;
         echo $demoResquest->sobrenome;
@@ -30,7 +30,7 @@ class DemoQueryResource {
     }
 
     #[Cache(time: 900)]
-    #[Route(route: 'testCache', code: StatusCode::OK, type: HttpRequest::GET, headers: [ ContentType::CONTENT_JS ])]
+    #[Route(route: 'testCache', code: StatusCode::OK, type: HttpRequest::GET, headers: [ ContentType::CONTENT_JSON ])]
     public function exampleRoutingWithCache(){
         echo "teste";
     }

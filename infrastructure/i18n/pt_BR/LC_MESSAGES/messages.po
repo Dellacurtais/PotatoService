@@ -16,6 +16,18 @@ msgstr "Requisição inválida"
 msgid "RepositoryEntityNotFoundException"
 msgstr "Repositório não possui entitade definida"
 
+msgid "SetRepositoryAttributeNotFoundException"
+msgstr "Atributo SetRepository não definido"
+
+msgid "EntityNotFoundOnModelException"
+msgstr "Entidade não encontrada no modelo"
+
+msgid "A classe %s não possúi o atributo SetRepository"
+msgstr ""
+
+msgid "A classe %s não possúi o atributo Entity"
+msgstr ""
+
 msgid "O campo %s é inválido"
 msgstr ""
 

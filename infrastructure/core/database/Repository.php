@@ -5,6 +5,7 @@ namespace infrastructure\core\database;
 use Illuminate\Database\Eloquent\Collection;
 use infrastructure\core\database\attributes\Entity;
 use infrastructure\core\database\interfaces\iRepository;
+use infrastructure\core\exception\EntityNotFoundOnModelException;
 use infrastructure\core\exception\RepositoryEntityNotFoundException;
 
 class Repository implements iRepository {
@@ -54,9 +55,13 @@ class Repository implements iRepository {
     private function doReflection(){
         $doReflection = new \ReflectionClass($this->model);
         $attribute = current($doReflection->getAttributes(attributes\Entity::class, \ReflectionAttribute::IS_INSTANCEOF));
-        $instance = $attribute->newInstance();
-        if ($instance instanceof Entity){
-            $instance->execute($this->model);
+        if ($attribute){
+            $instance = $attribute->newInstance();
+            if ($instance instanceof Entity){
+                $instance->execute($this->model);
+            }
+        }else{
+            throw new EntityNotFoundOnModelException(sprintf(_("A classe %s não possúi o atributo Entity"), _($this->model::class)));
         }
     }
 }

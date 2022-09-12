@@ -3,6 +3,9 @@
 namespace infrastructure\core\attributes;
 
 use Attribute;
+use infrastructure\core\exception\BusinessException;
+use infrastructure\core\exception\ServerException;
+use infrastructure\core\exception\SetRepositoryAttributeNotFoundException;
 
 #[attribute(Attribute::TARGET_PROPERTY)]
 class Autowired {
@@ -18,7 +21,10 @@ class Autowired {
                 if ($Method && $Method->isStatic()){
                     self::$allClass[$class] = call_user_func([$class, 'getInstance']);
                 }
-            }catch (\Exception $ignore){
+            }catch (\Exception $exception){
+                if ($exception instanceof ServerException || $exception instanceof BusinessException){
+                    throw $exception;
+                }
                 self::$allClass[$class] = $Reflection->newInstance(...$args);
             }
             $this->last = self::$allClass[$class];
