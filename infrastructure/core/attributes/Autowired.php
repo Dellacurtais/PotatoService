@@ -26,8 +26,9 @@ class Autowired {
                 }
                 self::$allClass[$class] = $Reflection->newInstance(...$args);
             }
-            $this->last = self::$allClass[$class];
         }
+
+        $this->last = self::$allClass[$class];
     }
 
     public function getClass(){

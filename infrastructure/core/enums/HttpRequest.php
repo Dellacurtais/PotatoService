@@ -12,10 +12,10 @@ enum HttpRequest: int {
 
     public static function fromString(string $httpRequest): HttpRequest {
         return match(strtolower($httpRequest)) {
-            $httpRequest == "post" => self::POST,
-            $httpRequest == "put" => self::PUT,
-            $httpRequest == "delete" => self::DELETE,
-            $httpRequest == "patch" => self::PATCH,
+            "post" => self::POST,
+            "put" => self::PUT,
+            "delete" => self::DELETE,
+            "patch" => self::PATCH,
             default => self::GET
         };
     }
