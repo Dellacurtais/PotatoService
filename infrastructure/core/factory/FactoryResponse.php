@@ -11,8 +11,8 @@ class FactoryResponse {
     public static function getResponseType(ResponseType $responseType): ResponseHtml|ResponseJson|null {
 
         return match ($responseType) {
-            $responseType == ResponseType::HTML => new ResponseHtml(),
-            $responseType == ResponseType::JSON => new ResponseJson(),
+            ResponseType::HTML => new ResponseHtml(),
+            ResponseType::JSON => new ResponseJson(),
             default => null
         };
 
