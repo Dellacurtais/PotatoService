@@ -9,6 +9,7 @@ use infrastructure\core\interfaces\iValidation;
 class EntityModel extends Model {
 
     public array $columns = [];
+    public array $columnsName = [];
 
     public function __construct(array $attributes = []){
         parent::__construct($attributes);
@@ -43,6 +44,7 @@ class EntityModel extends Model {
                     }
 
                     $this->columns[$propertyName] = $attrInstance;
+                    $this->columnsName[$columnName] = $propertyName;
                     if (!empty($propertyValue))
                         $this->setAttribute($propertyName, $propertyValue);
                 }
@@ -55,5 +57,15 @@ class EntityModel extends Model {
         foreach ($this->validations as $column => $validation) {
             $validation->validate($column, $this->$column);
         }
+    }
+
+    public function toEntity(){
+        foreach ($this->getAttributes() as $attribute => $value){
+            if (isset($this->columnsName[$attribute])){
+                $nameAttr = $this->columnsName[$attribute];
+                $this->$nameAttr = $value;
+            }
+        }
+        return $this;
     }
 }
