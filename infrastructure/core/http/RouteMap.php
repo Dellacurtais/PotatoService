@@ -57,8 +57,7 @@ class RouteMap {
                 foreach ($this->properties as $k=>$var){
                     $this->params[$var] = $validate[$k+1];
                 }
-
-                return $validate[0] == $requestUri;
+                return true;
             }
         }
         return false;
