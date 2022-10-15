@@ -53,11 +53,11 @@ class RouteMap {
         if (empty($this->pattern) && $requestUri === $this->route){
             return true;
         }else{
-            if (preg_match('#^'. $this->pattern .'$#', $this->route, $validate)){
+            if (preg_match('#^'. $this->pattern .'$#', $requestUri, $validate)){
                 foreach ($this->properties as $k=>$var){
                     $this->params[$var] = $validate[$k+1];
                 }
-                return true;
+                return $validate[0] == $requestUri;
             }
         }
         return false;
