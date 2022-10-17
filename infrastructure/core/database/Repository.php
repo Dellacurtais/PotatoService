@@ -10,7 +10,7 @@ use infrastructure\core\exception\RepositoryEntityNotFoundException;
 
 class Repository implements iRepository {
 
-    public static Repository|null $instance = null;
+    public static array $instance = [];
 
     private EntityModel|null $model = null;
 
@@ -35,15 +35,17 @@ class Repository implements iRepository {
 
 
     public static function getInstance() : Repository {
-        if (self::$instance == null){
-            $classCalled = get_called_class();
-            self::$instance = new $classCalled();
-            FactoryDatabase::setRepository(get_called_class(), self::$instance);
-            if (self::$instance->model == null)
+        $classCalled = get_called_class();
+
+        if (self::$instance[$classCalled] == null){
+
+            self::$instance[$classCalled] = new $classCalled();
+            FactoryDatabase::setRepository(get_called_class(), self::$instance[$classCalled]);
+            if (self::$instance[$classCalled]->model == null)
                 throw new RepositoryEntityNotFoundException();
 
         }
-        return self::$instance;
+        return self::$instance[$classCalled];
     }
 
     public function setModel($model){
