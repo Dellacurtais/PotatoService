@@ -46,7 +46,7 @@ class EntityModel extends Model {
                     $this->columns[$propertyName] = $attrInstance;
                     $this->columnsName[$columnName] = $propertyName;
                     if (!empty($propertyValue))
-                        $this->setAttribute($propertyName, $propertyValue);
+                        $this->setAttribute($columnName, $propertyValue);
                 }
             }
         }
