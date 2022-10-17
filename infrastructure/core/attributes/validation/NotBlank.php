@@ -10,7 +10,7 @@ use infrastructure\core\interfaces\iValidation;
 class NotBlank implements iValidation {
 
     public function validate($key, $value){
-        if (empty(trim($value))){
+        if (is_null($value) || empty(trim($value))){
             throw new BusinessException(sprintf(_("O campo %s não pode estar em branco"), _($key)));
         }
     }
