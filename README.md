@@ -21,38 +21,44 @@ PotatoService try implement the CQRS pattern, but it is still in first steps.
 ### Resources
 All requests can be mapped by resource and and initialized by the runner, if you created a new Resource file, just go on application/runner/Main.php and put the class in loadResource();
 
-    Routes::registerResources([
-        DemoQueryResource::class
-    ]);
+```php
+Routes::registerResources([
+	DemoQueryResource::class
+]);
+```
 
 On your resource file, you just use Attribute `#[Route]` to mapping your routes [see: application/resource/DemoQueryResource].
 
-    #[Route(route: 'Home', code: StatusCode::OK, type: HttpRequest::GET, headers: [ ContentType::CONTENT_JS ])]  
-	public function exampleRouting(DemoResquest $demoResquest){  
-		$this->testeService->execute();  
-    } 
+```php
+#[Route(route: 'Home', code: StatusCode::OK, type: HttpRequest::GET, headers: [ ContentType::CONTENT_JS ])]
+public function exampleRouting(DemoResquest $demoResquest){
+	$this->testeService->execute();
+}
+```
 
 You can map the request input data (Post, Get, etc), just create a class and extend it to MapRequest, after, just set this in yout method. With this you can use attributes to validate all you need.
 
-    class DemoResquest extends MapRequest {  
-	  #[MinLength(5)]  
-	  public ?string $nome;  
-  
-	  #[NotBlank]  
-	  public ?string $sobrenome;  
-	}
-
-
+```php
+class DemoResquest extends MapRequest { 
+	#[MinLength(5)]
+	public ?string $nome;
+	
+	#[NotBlank]
+	public ?string $sobrenome;
+}
+```
 
 ### Services
 Create a services to mantain your business rules in domain layer and use it in your application layer
 
-    class TesteService extends Services {  
-	    #[Autowired(class: TesteRepository::class)]  
-		public TesteRepository $testeRepository;
-
-		public function execute(){}
-	}
+```php
+class TesteService extends Services {
+	#[Autowired(class: TesteRepository::class)]
+	public TesteRepository $testeRepository;
+	
+	public function execute(){}
+}
+```
 
 ### Exception
 We have a BusinessException and ServerException, when any exception is called the system output a json with this error, BussinessException use code 400 and ServerException use 500.
@@ -64,28 +70,31 @@ We use a Eloquent ORM and try simulate a small Repository with it. When you crea
 
 In model you can map your columns table and validate it, ex:
 
-
-    #[Entity(tableName: 'teste', properties: ['timestamps' => false])]
-	class Teste extends EntityModel {
+```php
+#[Entity(tableName: 'teste', properties: ['timestamps' => false])]
+class Teste extends EntityModel {
+	#[Column(name: "id", primaryKey: true)]
+	public $id;
 	
-	    #[Column(name: "id", primaryKey: true)]
-	    public $id;
-
-	    #[NotBlank]
-	    #[Column(name: "nome")]
-	    public $nome;
-    }
+	#[NotBlank]
+	#[Column(name: "nome")]
+	public $nome;
+}
+```
 
 After, you create a new Repository class and extend it on `Repository`:
 
-    #[SetRepository(entity: Teste::class)]  
-	class TesteRepository extends Repository {  
-	}
+```php
+#[SetRepository(entity: Teste::class)]
+class TesteRepository extends Repository {}
+```
 
 You can use atribte Autowired to load it your application layer or in your services, example:
 
-	#[Autowired(class: TesteRepository::class)]  
-	public TesteRepository $testeRepository;
+```php
+#[Autowired(class: TesteRepository::class)]
+public TesteRepository $testeRepository;
+```
 
 ### Attributes
 We have same attributes
