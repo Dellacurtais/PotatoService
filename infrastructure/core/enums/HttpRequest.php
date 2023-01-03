@@ -11,7 +11,9 @@ enum HttpRequest: int {
     case PATCH = 4;
 
     public static function fromString(string $httpRequest): HttpRequest {
-        return match(strtolower($httpRequest)) {
+        $httpRequest = strtolower($httpRequest);
+
+        return match($httpRequest) {
             "post" => self::POST,
             "put" => self::PUT,
             "delete" => self::DELETE,

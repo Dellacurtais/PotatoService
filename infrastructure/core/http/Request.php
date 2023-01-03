@@ -50,7 +50,7 @@ class Request {
     }
 
     public function getHeader($key = null){
-        return $this->allHeaders[$key] ?? null;
+        return $this->headers[$key] ?? null;
     }
 
     public function setBundle($key, $value){

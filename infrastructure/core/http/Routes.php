@@ -32,6 +32,7 @@ class Routes {
                 }
             }
         }
+
     }
 
     public function alias(string $name, array $args = []): RouteMap|null {
