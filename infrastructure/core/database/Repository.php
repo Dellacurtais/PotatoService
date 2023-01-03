@@ -12,7 +12,7 @@ class Repository implements iRepository {
 
     public static array $instance = [];
 
-    private EntityModel|null $model = null;
+    public EntityModel|null $model = null;
 
     public function getAll() : Collection {
         return $this->model->all();
@@ -37,8 +37,7 @@ class Repository implements iRepository {
     public static function getInstance() : Repository {
         $classCalled = get_called_class();
 
-        if (self::$instance[$classCalled] == null){
-
+        if (!isset(self::$instance[$classCalled])){
             self::$instance[$classCalled] = new $classCalled();
             FactoryDatabase::setRepository(get_called_class(), self::$instance[$classCalled]);
             if (self::$instance[$classCalled]->model == null)

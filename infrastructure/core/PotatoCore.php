@@ -99,9 +99,8 @@ class PotatoCore {
                 }
             }
 
+            $HasTransactional?->begins();
             try{
-                $HasTransactional?->begins();
-
                 if ($HasCache){
                     $HasCache->execute();
                     if ($HasCache->isInvalid){
@@ -123,7 +122,7 @@ class PotatoCore {
         }
     }
 
-    private function renderView(ResponseReturn|null $view, $return = false): mixed {
+    private function renderView(ResponseReturn|null $view, $return = false) {
         if ($view == null)
             return null;
 

@@ -9,7 +9,7 @@ use infrastructure\core\exception\ServerException;
 #[attribute(Attribute::TARGET_PROPERTY)]
 class Autowired {
 
-    protected static $allClass = [];
+    public static $allClass = [];
     protected $last;
 
     public function __construct($class, $args = []){
