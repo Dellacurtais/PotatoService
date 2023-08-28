@@ -6,7 +6,7 @@ use infrastructure\core\attributes\Cache;
 
 class CacheService implements iCache {
 
-    public function execute(Cache $cache){
+    public function execute(Cache $cache): void {
         $cacheFile = $this->getFileInDisk($cache);
         if (file_exists($cacheFile) && (time() - $cache->time) < filemtime($cacheFile)) {
             $cache->isInvalid = false;
@@ -14,12 +14,12 @@ class CacheService implements iCache {
         }
     }
 
-    public function saveCache(Cache $cache, $data){
+    public function saveCache(Cache $cache, $data): void {
         file_put_contents($this->getFileInDisk($cache), $data);
         echo $data;
     }
 
-    public function clearCache($key = null){
+    public function clearCache($key = null): void {
         $cacheFile = INFRA_PATCH . '/cache/request/' . base64_encode($key) .".cache";
         if (is_file($cacheFile)){
             @unlink($cacheFile);

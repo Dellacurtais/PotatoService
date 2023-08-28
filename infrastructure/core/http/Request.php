@@ -27,8 +27,11 @@ class Request {
         if (empty($this->requestUri))
             $this->requestUri = $_ENV['DEFAULT_ROUTE'];
 
+        $this->activeRoute = Routes::verifyRouteCache($this->requestUri);
+
         $this->headers = getRequestHeaders();
         $this->json = jsonBody();
+
         $this->get = $_GET;
         $this->post = $_POST;
     }
@@ -82,6 +85,11 @@ class Request {
 
         if (isset($_REQUEST[$key]))
             return $_REQUEST[$key];
+
+        $tryDotToUnderscore = str_replace('.', '_', $key);
+        if ($tryDotToUnderscore != $key){
+            return $this->find($tryDotToUnderscore);
+        }
 
         return null;
     }

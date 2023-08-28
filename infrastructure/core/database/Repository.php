@@ -8,6 +8,9 @@ use infrastructure\core\database\interfaces\iRepository;
 use infrastructure\core\exception\EntityNotFoundOnModelException;
 use infrastructure\core\exception\RepositoryEntityNotFoundException;
 
+/**
+ * @deprecated
+ */
 class Repository implements iRepository {
 
     public static array $instance = [];
@@ -23,7 +26,7 @@ class Repository implements iRepository {
     }
 
     public function deleteById(int $id){
-
+        $this->model->delete($id);
     }
 
     public function save(mixed $entity, $options = []){

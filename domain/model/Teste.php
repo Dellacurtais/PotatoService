@@ -2,6 +2,7 @@
 
 namespace domain\model;
 
+use infrastructure\core\attributes\validation\Min;
 use infrastructure\core\database\attributes\Column;
 use infrastructure\core\database\attributes\Entity;
 use infrastructure\core\database\EntityModel;

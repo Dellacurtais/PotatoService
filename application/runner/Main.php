@@ -7,16 +7,28 @@ use infrastructure\core\interfaces\iRunner;
 
 class Main implements iRunner {
 
-    public function main(){
-        //do any you need
-        //core()->systemLangCreator();
+    private array $resources = [
+        DemoQueryResource::class
+    ];
 
-        $this->loadResources();
+    public function main(): void {
+        Routes::registerResources($this->resources);
     }
 
-    public function loadResources() {
-        Routes::registerResources([
-            DemoQueryResource::class
-        ]);
+    public function onStart() {
+        // TODO: Implement onStart() method.
+    }
+
+    public function afterDatabaseConnection() {
+        // TODO: Implement afterDatabaseConnection() method.
+    }
+
+    public function onFinish() {
+        // TODO: Implement onFinish() method.
+    }
+
+    public function onDetectNewVersion()
+    {
+
     }
 }

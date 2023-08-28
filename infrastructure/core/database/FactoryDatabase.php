@@ -5,6 +5,9 @@ namespace infrastructure\core\database;
 
 use infrastructure\core\exception\SetRepositoryAttributeNotFoundException;
 
+/**
+ * @deprecated
+ */
 class FactoryDatabase {
 
 

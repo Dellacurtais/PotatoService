@@ -16,7 +16,6 @@ class Cache {
 
     public function saveCache($data){
         cacheService()->saveCache($this, $data);
-        echo $data;
     }
 
     public static function clearCache(string $key = null){
