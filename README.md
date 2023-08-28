@@ -49,8 +49,8 @@ Create a services to mantain your business rules in domain layer and use it in y
 
 ```php
 class TesteService extends Services {
-	#[Autowired(class: TesteRepository::class)]
-	public TesteRepository $testeRepository;
+	#[Autowired(class: TesteService::class)]
+	public TesteService $testeService;
 	
 	public function execute(){}
 }
