@@ -1,10 +1,6 @@
 # PotatoService
-New version of PotatoFramework
-
 
 # About it
-PotatoService try implement the CQRS pattern, but it is still in first steps.
-
 * **PHP Version Requirement:** 8.1 or higher
 * **Status**: Alpha Release
 * **Version**: 0.1
@@ -65,7 +61,7 @@ We have a BusinessException and ServerException, when any exception is called th
 
 You can create your exceptions and use it to show a more detailed info about the error.
 
-### Repositories
+### Models
 We use a Eloquent ORM and try simulate a small Repository with it. When you create a Model, you just extend it with EntityModel and use attribute in class `#[Entity(tableName: 'teste', properties: ['timestamps' => false])]`
 
 In model you can map your columns table and validate it, ex:
@@ -80,20 +76,6 @@ class Teste extends EntityModel {
 	#[Column(name: "nome")]
 	public $nome;
 }
-```
-
-After, you create a new Repository class and extend it on `Repository`:
-
-```php
-#[SetRepository(entity: Teste::class)]
-class TesteRepository extends Repository {}
-```
-
-You can use atribte Autowired to load it your application layer or in your services, example:
-
-```php
-#[Autowired(class: TesteRepository::class)]
-public TesteRepository $testeRepository;
 ```
 
 ### Attributes
