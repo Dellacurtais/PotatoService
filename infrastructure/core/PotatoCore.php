@@ -2,6 +2,7 @@
 namespace infrastructure\core;
 
 use Dotenv\Dotenv;
+use infrastructure\core\exception\BusinessException;
 use infrastructure\core\exception\InvalidRequestException;
 use infrastructure\core\general\MapRequest;
 use infrastructure\core\interfaces\iRunner;
@@ -16,6 +17,8 @@ class PotatoCore {
 
     use Singleton;
 
+    public $version;
+
     /**
      * PotatoCore constructor.
      * @throws \Exception
@@ -26,6 +29,26 @@ class PotatoCore {
         $dotenv = Dotenv::createImmutable(INFRA_PATCH );
         $dotenv->load();
 
+        if (PHP_SAPI === 'cli'){
+            $this->executeCli();
+            exit();
+        }
+
+        $GetRunner = new $_ENV['RUNNER_CLASS']();
+        if (!$GetRunner instanceof iRunner){
+            throw new InvalidRequestException();
+        }
+
+        $GetRunner->onStart();
+
+        $this->version = file_get_contents(INFRA_PATCH . '/cache/.currentVersion');
+        if ($this->version != $_ENV['VERSION']){
+            core()->systemLangCreator();
+            file_put_contents(INFRA_PATCH . '/cache/.currentVersion', $_ENV['VERSION']);
+
+            $GetRunner->onDetectNewVersion();
+        }
+
         $this->setLocale();
 
         if ($_ENV['FORCE_SSL']){
@@ -33,24 +56,39 @@ class PotatoCore {
         }
 
         $this->initDatabase();
+        $GetRunner->afterDatabaseConnection();
 
-        $GetRunner = new $_ENV['RUNNER_CLASS']();
-        if (!$GetRunner instanceof iRunner){
+        if (request()->activeRoute == null)
+            $GetRunner->main();
+
+        if (request()->activeRoute == null)
             throw new InvalidRequestException();
-        }
-
-        $GetRunner->main();
-
-        if (request()->activeRoute == null) {
-            throw new InvalidRequestException();
-        }
 
         $this->execute();
 
         http_response_code(request()->activeRoute->statusCode->value);
+
+        $GetRunner->onFinish();
     }
 
-    private function execute(){
+    private function executeCli(): void {
+        $GetRunner = new $_ENV['RUNNER_CLASS_CONSOLE']();
+        if (!$GetRunner instanceof iRunner){
+            echo "Error starting console. Check the RUNNER_CLASS_CONSOLE in the .env";
+            exit();
+        }
+        $GetRunner->onStart();
+
+        $this->setLocale();
+        $this->initDatabase();
+        $GetRunner->afterDatabaseConnection();
+
+        $GetRunner->main();
+
+        $GetRunner->onFinish();
+    }
+
+    private function execute(): void {
         $class = request()->activeRoute->getClass();
         $method = request()->activeRoute->getMethod();
         $attrs = request()->activeRoute->getParams();
@@ -83,8 +121,10 @@ class PotatoCore {
                 $hasValueByMap = "";
                 if ($parameter->getType()){
                     $tryClass = $parameter->getType()->getName();
-                    if (class_exists($tryClass)){
+                    if (class_exists($tryClass, true)){
                         $hasValueByMap = new $tryClass();
+                    }else{
+                        new BusinessException('Class '.$tryClass.' não existe');
                     }
                 }
 
@@ -156,7 +196,7 @@ class PotatoCore {
         }
     }
 
-    public function loadHelper($file){
+    public function loadHelper($file): void {
         $isFind = false;
         if (file_exists(INFRA_PATCH."Helpers/".$file.".php")) {
             require(INFRA_PATCH . "Helpers/" . $file . ".php");
@@ -167,15 +207,19 @@ class PotatoCore {
         }
     }
 
-    private function initDatabase(){
+    private function initDatabase(): void {
+        if ($_ENV["DISABLE_DATABASE"])
+            return;
+
         /**
-         * @var $Driver \System\Database\DriverImplements
+         * @var $Driver database\interfaces\iDriverImplements
          */
         $Driver = new $_ENV["DATABASE_DRIVE"]();
+
         $Driver->createConnection();
     }
 
-    private function sslRedirect(){
+    private function sslRedirect(): void {
         if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === "off") {
             $location = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
             header('HTTP/1.1 301 Moved Permanently');
@@ -184,7 +228,7 @@ class PotatoCore {
         }
     }
 
-    private function setLocale(){
+    private function setLocale(): void {
         putenv("LC_ALL=".$_ENV['LANG']);
         setlocale(LC_ALL, $_ENV['LANG']);
         bindtextdomain($_ENV['LANG_DOMAIN'], INFRA_PATCH . '/i18n');
@@ -192,7 +236,7 @@ class PotatoCore {
         textdomain($_ENV['LANG_DOMAIN']);
     }
 
-    public function systemLangCreator(){
+    public function systemLangCreator(): void {
         moGenerator(INFRA_PATCH . '/i18n/'.$_ENV['LANG']."/LC_MESSAGES/".$_ENV['LANG_DOMAIN']);
     }
 }

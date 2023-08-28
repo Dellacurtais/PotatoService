@@ -205,3 +205,17 @@ function moGenerator($langFile){
         $generator->generateFile($translations, $langFile.".mo");
     }
 }
+
+function removeFiles($dir): void {
+    if (is_dir($dir)) {
+        $itens = scandir($dir);
+        foreach ($itens as $item) {
+            if ($item != "." && $item != "..") {
+                removeFiles($dir . DIRECTORY_SEPARATOR . $item);
+            }
+        }
+        rmdir($dir);
+    } else {
+        unlink($dir);
+    }
+}

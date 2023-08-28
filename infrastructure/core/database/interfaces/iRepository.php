@@ -3,6 +3,9 @@ namespace infrastructure\core\database\interfaces;
 
 use infrastructure\core\database\EntityModel;
 
+/**
+ * @deprecated
+ */
 interface iRepository {
 
     public function getAll();

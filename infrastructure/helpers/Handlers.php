@@ -1,16 +1,21 @@
 <?php
 
 function handler_exception($Execption): void {
-    response()->setHeaderType(\infrastructure\core\enums\ContentType::CONTENT_JSON);
-    echo json_encode([
-        "timestamp" => time(),
-        "exception" => get_class($Execption),
-        "status" => $Execption->getCode(),
-        "path" => request()->requestUri,
-        "message" => $Execption->getMessage(),
-        "error" => isset($Execption->error_message) ? _($Execption->error_message) : _("Exception")
-    ]);
-    http_response_code($Execption->getCode());
+    if (PHP_SAPI === 'cli'){
+        echo "Error Code: ".$Execption->getCode()."\n";
+        echo "Error Message: ".$Execption->getMessage();
+    }else{
+        response()->setHeaderType(\infrastructure\core\enums\ContentType::CONTENT_JSON);
+        echo json_encode([
+            "timestamp" => time(),
+            "exception" => get_class($Execption),
+            "status" => $Execption->getCode(),
+            "path" => request()->requestUri,
+            "message" => $Execption->getMessage(),
+            "error" => isset($Execption->error_message) ? _($Execption->error_message) : _("Exception")
+        ]);
+        http_response_code($Execption->getCode());
+    }
     exit();
 }
 

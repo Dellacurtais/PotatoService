@@ -21,7 +21,7 @@ class EntityModel extends Model {
      */
     private array $validations = [];
 
-    public function execute(){
+    public function execute(): void {
         $EntityClass = new \ReflectionClass($this);
         $AllProperties = $EntityClass->getProperties();
 
@@ -36,7 +36,6 @@ class EntityModel extends Model {
                 if ($attrInstance instanceof iValidation){
                     $this->validations[$propertyName] = $attrInstance;
                 }
-
                 if ($attrInstance instanceof Column){
                     $columnName = $attrInstance->name;
                     if ($attrInstance->primaryKey){
@@ -53,13 +52,18 @@ class EntityModel extends Model {
 
     }
 
-    public function validate(){
+    public function save(array $options = []): bool {
+        $this->validate();
+        return parent::save($options);
+    }
+
+    public function validate(): void {
         foreach ($this->validations as $column => $validation) {
             $validation->validate($column, $this->$column);
         }
     }
 
-    public function toEntity(){
+    public function toEntity(): static {
         foreach ($this->getAttributes() as $attribute => $value){
             if (isset($this->columnsName[$attribute])){
                 $nameAttr = $this->columnsName[$attribute];
