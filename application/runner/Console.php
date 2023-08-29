@@ -15,23 +15,24 @@ class Console implements iRunner {
 
     public function main(): void{
         global $argc, $argv;
+        array_shift($argv);
 
         if ($argc == 0){
-            echo _('Use -h to query available commands');
+            logError('Use -h to query available commands');
             return;
         }
-        $command = $argv[1];
+
+        $command = array_shift($argv);
         if (!isset($this->commands[$command])){
-            echo _('Command '.$command.' does not exist');
+            logError('Command '.$command.' does not exist');
             return;
         }
 
         $classRunner = new $this->commands[$command]();
         if (!($classRunner instanceof iConsole)){
-            echo _('Class '.$this->commands[$command].'does not implement iConsole interface');
+            logError('Class '.$this->commands[$command].'does not implement iConsole interface');
             return;
         }
-        unset($argv[0], $argv[1]);
         $classRunner->execute($argv);
     }
 

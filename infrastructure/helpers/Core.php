@@ -206,7 +206,7 @@ function moGenerator($langFile){
     }
 }
 
-function removeFiles($dir): void {
+function removeFiles($dir, $removeDir = false): void {
     if (is_dir($dir)) {
         $itens = scandir($dir);
         foreach ($itens as $item) {
@@ -214,8 +214,49 @@ function removeFiles($dir): void {
                 removeFiles($dir . DIRECTORY_SEPARATOR . $item);
             }
         }
-        rmdir($dir);
-    } else {
+        if ($removeDir)
+            rmdir($dir);
+    } else if($removeDir) {
         unlink($dir);
     }
+}
+
+function logError($message): void {
+    coloredEcho(date('Y-m-d H:i:s').": ", 'yellow');
+    coloredEcho(_($message), 'red');
+    echo "\n";
+}
+
+function logWarning($message): void {
+    coloredEcho(date('Y-m-d H:i:s').": ", 'yellow');
+    coloredEcho(_($message), 'yellow');
+    echo "\n";
+}
+
+function logSuccess($message): void {
+    coloredEcho(date('Y-m-d H:i:s').": ", 'yellow');
+    coloredEcho(_($message), 'green');
+    echo "\n";
+}
+
+function logInfo($message): void {
+    coloredEcho(date('Y-m-d H:i:s').": ", 'yellow');
+    coloredEcho(_($message));
+    echo "\n";
+}
+
+function coloredEcho($text, $color = "default"): void {
+    $colors = [
+        'default' => "\033[0m",
+        'black' => "\033[0;30m",
+        'red' => "\033[0;31m",
+        'green' => "\033[0;32m",
+        'yellow' => "\033[0;33m",
+        'blue' => "\033[0;34m",
+        'purple' => "\033[0;35m",
+        'cyan' => "\033[0;36m",
+        'white' => "\033[0;37m"
+    ];
+
+    echo $colors[$color] . $text . $colors['default'];
 }

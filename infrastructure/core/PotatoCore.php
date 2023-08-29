@@ -74,7 +74,7 @@ class PotatoCore {
     private function executeCli(): void {
         $GetRunner = new $_ENV['RUNNER_CLASS_CONSOLE']();
         if (!$GetRunner instanceof iRunner){
-            echo "Error starting console. Check the RUNNER_CLASS_CONSOLE in the .env";
+            logError("Error starting console. Check the RUNNER_CLASS_CONSOLE in the .env");
             exit();
         }
         $GetRunner->onStart();
