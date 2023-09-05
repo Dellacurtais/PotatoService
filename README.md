@@ -1,3 +1,4 @@
+
 # PotatoService
 
 # Overview
@@ -114,3 +115,57 @@ Attributes:
 `#[Pattern]`
 `#[PositiveOrZero]`
 `#[Url]`
+
+# Console Usage Guide
+
+### Overview
+The PotatoService framework offers an interactive console for executing specific commands. This guide provides an overview of the available commands and instructions on how to add new commands.
+
+### Running Commands
+To execute a command, navigate to the directory containing the index.php file and use the following format:
+```console
+php index.php -command
+```
+
+### Available Commands [Under Development]
+
+ - **-h**: Displays help or lists available commands. [Under Development]
+ - **-exec**: Use to execute commands and not finish the console. [Under Development]
+ - **-cache**: Performs operations related to caching. [Under Development]
+
+
+Example:
+To view the help or list available commands:
+
+```console
+php index.php -cache clearingRoute
+```
+
+### Adding New Commands
+
+1.  **Define a New Command Class**: Create a new class in the `application\console` namespace. Ensure that this class implements the `iConsole` interface.
+    
+    Example:
+    ```php
+    namespace application\console;
+    
+    use infrastructure\core\interfaces\iConsole;
+    
+    class MyNewCommand implements iConsole {
+        public function execute($args, $callback) {
+            // Command logic here
+        }
+    }
+    ``` 
+    
+2.  **Register the Command**: Add an entry for your command in the `$commands` array in the `Console` class.
+    
+    ```php
+    private $commands = [
+        // ... existing commands
+        '-myNewCommand' => MyNewCommand::class
+    ];
+    ```
+    
+3.  Now, you can run your new command using:
+    `php index.php -myNewCommand`
