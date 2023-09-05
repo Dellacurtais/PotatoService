@@ -1,21 +1,25 @@
 # PotatoService
 
-# About it
+# Overview
+PotatoService is a comprehensive framework for PHP developers. Below is a brief rundown of its characteristics and features:
+
 * **PHP Version Requirement:** 8.1 or higher
-* **Status**: Alpha Release
+* **Status**: Alpha
 * **Version**: 0.1
 
-### Potato Service Structure
+### Architectural Structure
+The framework's architecture is divided into three distinct layers:
+
 1. **Aplication Layer**
 2. **Domain Layer**
 3. **Infrastructure Layer**
 
-### About Settings
-1. All your project settings can be done by changing the .env file [infrastructure/.env -> $_ENV]
-2. All dependencies can be configured by composer [infrastructure/composer.json]
+### Configuration
+1. Project Settings: Modify the .env file to adjust your project settings. Path: infrastructure/.env -> $_ENV
+2. Dependencies: Set up and configure dependencies using composer. Path: infrastructure/composer.json
 
-### Resources
-All requests can be mapped by resource and and initialized by the runner, if you created a new Resource file, just go on application/runner/Main.php and put the class in loadResource();
+### Resource Management
+To map requests by resource and initialize them, use the runner. When adding a new Resource file, update application/runner/Main.php to include the resource class:
 
 ```php
 Routes::registerResources([
@@ -23,7 +27,7 @@ Routes::registerResources([
 ]);
 ```
 
-On your resource file, you just use Attribute `#[Route]` to mapping your routes [see: application/resource/DemoQueryResource].
+For route mapping in your resource file, use the #[Route] attribute. Example:
 
 ```php
 #[Route(route: 'Home', code: StatusCode::OK, type: HttpRequest::GET, headers: [ ContentType::CONTENT_JS ])]
@@ -32,7 +36,7 @@ public function exampleRouting(DemoResquest $demoResquest){
 }
 ```
 
-You can map the request input data (Post, Get, etc), just create a class and extend it to MapRequest, after, just set this in yout method. With this you can use attributes to validate all you need.
+To map request input data (e.g., Post, Get), create a class extending MapRequest. This allows for attribute-based input validation:
 
 ```php
 class DemoResquest extends MapRequest { 
@@ -45,7 +49,7 @@ class DemoResquest extends MapRequest {
 ```
 
 ### Services
-Create a services to mantain your business rules in domain layer and use it in your application layer
+Establish services to encapsulate your business logic within the domain layer, making it accessible in the application layer:
 
 ```php
 class TesteService extends Services {
@@ -56,15 +60,11 @@ class TesteService extends Services {
 }
 ```
 
-### Exception
-We have a BusinessException and ServerException, when any exception is called the system output a json with this error, BussinessException use code 400 and ServerException use 500.
+### Exception Handling
+Exceptions are categorized into BusinessException and ServerException. These output a JSON error message with HTTP codes 400 and 500, respectively. Custom exceptions can be defined for more detailed error feedback.
 
-You can create your exceptions and use it to show a more detailed info about the error.
-
-### Models
-We use a Eloquent ORM and try simulate a small Repository with it. When you create a Model, you just extend it with EntityModel and use attribute in class `#[Entity(tableName: 'teste', properties: ['timestamps' => false])]`
-
-In model you can map your columns table and validate it, ex:
+### Data Modeling
+The framework uses the Eloquent ORM. To define a model, extend EntityModel and apply the #[Entity] attribute:
 
 ```php
 #[Entity(tableName: 'teste', properties: ['timestamps' => false])]
@@ -78,21 +78,20 @@ class Teste extends EntityModel {
 }
 ```
 
-### Attributes
-We have same attributes
+### Attribute System
+Several attributes are provided for various purposes:
 
-`#[Route]` Can only be used on Resources. Used  to mapping your routes
+`#[Route]` Exclusive to Resources. Maps routes.
 
-`#[Transactional]`  Can only be used on Resources with routes and any exeception make a rollback in your database [Tested with MySQL]
+`#[Transactional]`  For Resources with routes. Any exception triggers a database rollback (tested with MySQL).
 
-`#[Cache]` Can only be used on Resources to create a cache for your output response
+`#[Cache]` For Resources. Caches the output response.
 
-`#[Autowired]` Can used by Resources and Services and is related to dependency injection
+`#[Autowired]` For Resources & Services. Manages dependency injection.
 
-You can create a validation attribute, just create a class and implement a `iValidation` interface
+Additionally, custom validation attributes can be created by implementing the iValidation interface. By default, numerous validation attributes are available for both EntityModel and MapQuest.
 
-By default we have same validations attributes and all can be used in `EntityModel` and `MapQuest`
-
+Attributes:
 `#[AssertFalse]`
 `#[AssertTrue]`
 `#[Decimal]`
