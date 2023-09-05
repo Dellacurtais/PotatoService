@@ -17,5 +17,8 @@
     "vlucas/phpdotenv": "^5",
     "gettext/gettext": "^5",
     "ext-gettext": "*"
+  },
+  "config": {
+    "disable-tls": true
   }
 }
