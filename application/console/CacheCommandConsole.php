@@ -6,7 +6,7 @@ use infrastructure\core\interfaces\iConsole;
 
 class CacheCommandConsole implements iConsole {
 
-    public function execute($args): void{
+    public function execute($args, $callback): void{
         $function = array_shift($args);
         if (method_exists($this, $function)){
             $this->$function($args);
