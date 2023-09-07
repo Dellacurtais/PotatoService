@@ -33,24 +33,9 @@ The framework's architecture is divided into three distinct layers:
 
 ### Wiki
 * [Exception Handling](https://github.com/Dellacurtais/PotatoService/wiki/Exception-Handling)
-* [Resource Management](https://github.com/Dellacurtais/PotatoService/wiki/Resource-Management)
+* [Resource](https://github.com/Dellacurtais/PotatoService/wiki/Resource-Management)
 * [Services](https://github.com/Dellacurtais/PotatoService/wiki/Services)
+* [Models](https://github.com/Dellacurtais/PotatoService/wiki/Models)
 * [Using `doFilter` within Services](https://github.com/Dellacurtais/PotatoService/wiki/Using-%60doFilter%60-within-Services)
 * [Attributes](https://github.com/Dellacurtais/PotatoService/wiki/Attributes)
 * [Console Usage Guide](https://github.com/Dellacurtais/PotatoService/wiki/Console-Usage-Guide)
-
-
-### Data Modeling
-The framework uses the Eloquent ORM. To define a model, extend EntityModel and apply the #[Entity] attribute:
-
-```php
-#[Entity(tableName: 'teste', properties: ['timestamps' => false])]
-class Teste extends EntityModel {
-	#[Column(name: "id", primaryKey: true)]
-	public $id;
-	
-	#[NotBlank]
-	#[Column(name: "nome")]
-	public $nome;
-}
-```
