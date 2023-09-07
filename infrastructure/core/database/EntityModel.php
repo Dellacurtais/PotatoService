@@ -60,6 +60,9 @@ class EntityModel extends Model {
     public function validate(): void {
         foreach ($this->validations as $column => $validation) {
             $validation->validate($column, $this->$column);
+            if (!$this->columns[$column]->primaryKey){
+                $this->setAttribute($this->columns[$column]->name, $this->$column);
+            }
         }
     }
 
