@@ -45,7 +45,7 @@ The framework's architecture is divided into three distinct layers:
 For questions, feedback, or collaboration inquiries, please reach out:
 
 -   Email: potato@maicon.tech
--   LinkedIn: [Maicon Gonçalez](https://www.linkedin.com/in/maicongoncalez/)
+-   [LinkedIn](https://www.linkedin.com/in/maicongoncalez/)
 
 ## Upcoming Features in PotatoService
 
