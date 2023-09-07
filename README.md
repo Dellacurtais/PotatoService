@@ -40,6 +40,12 @@ The framework's architecture is divided into three distinct layers:
 * [Attributes](https://github.com/Dellacurtais/PotatoService/wiki/Attributes)
 * [Console Usage Guide](https://github.com/Dellacurtais/PotatoService/wiki/Console-Usage-Guide)
 
+## Contact & Support
+
+For questions, feedback, or collaboration inquiries, please reach out:
+
+Email: potato@maicon.tech
+LinkedIn: [Maicon Gonçalez](https://www.linkedin.com/in/maicongoncalez/)
 
 ## Upcoming Features in PotatoService
 
