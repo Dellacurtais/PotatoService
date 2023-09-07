@@ -39,3 +39,30 @@ The framework's architecture is divided into three distinct layers:
 * [Using `doFilter` within Services](https://github.com/Dellacurtais/PotatoService/wiki/Using-%60doFilter%60-within-Services)
 * [Attributes](https://github.com/Dellacurtais/PotatoService/wiki/Attributes)
 * [Console Usage Guide](https://github.com/Dellacurtais/PotatoService/wiki/Console-Usage-Guide)
+
+
+## Upcoming Features in PotatoService
+
+PotatoService is continually evolving, with several exciting features on the horizon. Here's a sneak peek into what's coming next:
+
+### 1. Console-Based Migration Management:
+
+-   **Description**: Migration is a pivotal aspect of database management, especially in evolving applications. The upcoming version will introduce a way to handle database migrations directly through the console. This enhancement will make it easier to create, modify, and manage database structures, ensuring that developers can adapt to changing requirements efficiently.
+    
+-   **Benefits**:
+    -   Streamlined database updates without manual SQL scripting.
+    -   Version control for database structures.
+    -   Efficient rollback capabilities.
+
+### 2. Installation and Configuration via Console:
+
+-   **Description**: Setting up PotatoService will become even more straightforward. A console-based installation and configuration process is in the works. With a series of simple commands, developers will be able to initialize, configure, and fine-tune their PotatoService setup, all from the command line.
+    
+-   **Benefits**:
+    -   Simplified setup process, reducing manual steps.
+    -   Customized configuration based on project needs.
+    -   Efficient troubleshooting with console feedback.
+
+----------
+
+Stay tuned for these features and more as PotatoService continues its journey to become an even more developer-friendly and robust framework!
