@@ -7,17 +7,24 @@ use Illuminate\Database\Capsule\Manager;
 #[\Attribute(\Attribute::TARGET_METHOD)]
 class Transactional {
 
-    public function __construct(){}
-
-    public function begins(){
+    /**
+     * @throws \Throwable
+     */
+    public function begins(): void {
         Manager::connection()->beginTransaction();
     }
 
-    public function commit(){
+    /**
+     * @throws \Throwable
+     */
+    public function commit(): void {
         Manager::connection()->commit();
     }
 
-    public function rollback(){
+    /**
+     * @throws \Throwable
+     */
+    public function rollback(): void {
         Manager::connection()->rollBack();
     }
 

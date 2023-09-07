@@ -5,6 +5,9 @@ namespace infrastructure\core\database\attributes;
 use Attribute;
 use infrastructure\core\database\EntityModel;
 
+/**
+ * @deprecated
+ */
 #[Attribute(Attribute::TARGET_CLASS)]
 class Entity {
 

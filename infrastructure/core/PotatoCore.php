@@ -4,7 +4,6 @@ namespace infrastructure\core;
 use Dotenv\Dotenv;
 use infrastructure\core\exception\BusinessException;
 use infrastructure\core\exception\InvalidRequestException;
-use infrastructure\core\general\MapRequest;
 use infrastructure\core\interfaces\iRunner;
 use infrastructure\core\traits\Singleton;
 use infrastructure\core\attributes\Cache;
@@ -106,11 +105,11 @@ class PotatoCore {
             $Attributes = $MethodRef->getAttributes();
 
             $HasCache = null;
-            $HasTransactional = null;
+            $hasTransactional = null;
             foreach($Attributes as $attribute) {
                 $Build = $attribute->newInstance();
                 if ($Build instanceof Cache) $HasCache = $Build;
-                if ($Build instanceof Transactional) $HasTransactional = $Build;
+                if ($Build instanceof Transactional) $hasTransactional = $Build;
                 if ($Build instanceof iAttribute) $Build->execute();
             }
 
@@ -139,24 +138,21 @@ class PotatoCore {
                 }
             }
 
-            $HasTransactional?->begins();
+            $hasTransactional?->begins();
             try{
-                if ($HasCache){
+                if ($HasCache && !$HasCache->isInvalid){
                     $HasCache->execute();
-                    if ($HasCache->isInvalid){
-                        outputBuffer()->start();
-                        $execResource = call_user_func_array([$initClass, $method], $finalAttrs);
-                        $this->renderView($execResource);
-                        $HasCache->saveCache(outputBuffer()->returnAndClear());
-                    }
                 }else{
+                    if ($HasCache) outputBuffer()->start();
+
                     $execResource = call_user_func_array([$initClass, $method], $finalAttrs);
                     $this->renderView($execResource);
-                }
 
-                $HasTransactional?->commit();
+                    if ($HasCache) $HasCache->saveCache(outputBuffer()->returnAndClear());
+                }
+                $hasTransactional?->commit();
             }catch (\Exception $exception){
-                $HasTransactional?->rollback();
+                $hasTransactional?->rollback();
                 throw $exception;
             }
         }

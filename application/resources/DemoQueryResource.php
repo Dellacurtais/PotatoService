@@ -21,7 +21,7 @@ class DemoQueryResource {
     #[Route(route: 'Home', code: StatusCode::OK, type: HttpRequest::GET, headers: [ ContentType::CONTENT_JSON ])]
     public function exampleRouting(): void {
 
-        $this->testeService->execute();
+        doFilter($this->testeService, 'execute');
     }
 
     #[Route(route: 'testMapRequest', code: StatusCode::OK, type: HttpRequest::GET, headers: [ ContentType::CONTENT_JSON ])]

@@ -196,6 +196,61 @@ function getRequestInfo(string|null $u_agent = null, string|null $ip = null){
     );
 }
 
+/**
+ * Executes a method of an object, processing its attributes before the actual method execution.
+ * If the Transactional attribute is present, the method execution is wrapped in a transaction.
+ *
+ * @param object $object The object containing the method to be executed.
+ * @param string $methodName The name of the method to be executed.
+ * @param array $params The parameters to be passed to the method.
+ * @return mixed The result of the method execution.
+ * @throws \Exception Throws any exceptions that might occur during method or transaction execution.
+ */
+function doFilter($object, string $methodName, array $params = []): mixed {
+    $method = new \ReflectionMethod(get_class($object), $methodName);
+    $attributes = $method->getAttributes();
+
+    $transactionalInstance = null;
+    foreach ($attributes as $attribute) {
+        $attributeInstance = $attribute->newInstance();
+        if ($attributeInstance instanceof \infrastructure\core\attributes\Transactional) {
+            $transactionalInstance = $attributeInstance;
+        } else if ($attributeInstance instanceof \infrastructure\core\interfaces\iAttribute){
+            $attributeInstance->execute();
+        }else {
+            throw new \infrastructure\core\exception\BusinessException('The provided attribute instance does not implement the iAttribute interface.');
+        }
+    }
+
+    if ($transactionalInstance) {
+        return handleTransactional($transactionalInstance, $method, $object, $params);
+    }
+
+    return $method->invokeArgs($object, $params);
+}
+
+/**
+ * Handles the execution of a method within a transaction.
+ *
+ * @param object $transactionalInstance The Transactional attribute instance.
+ * @param \ReflectionMethod $method The method to be executed.
+ * @param object $object The object containing the method.
+ * @param array $params The parameters to be passed to the method.
+ * @return mixed The result of the method execution.
+ * @throws \Exception Throws any exceptions that might occur during method or transaction execution.
+ */
+function handleTransactional($transactionalInstance, $method, $object, array $params = []) {
+    try {
+        $transactionalInstance->begins();
+        $result = $method->invokeArgs($object, $params);
+        $transactionalInstance->commit();
+        return $result;
+    } catch (\Exception $e) {
+        $transactionalInstance->rollback();
+        throw $e;
+    }
+}
+
 function moGenerator($langFile){
     if (file_exists($langFile.".po")){
         $loader = new PoLoader();

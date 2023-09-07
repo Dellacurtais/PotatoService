@@ -14,7 +14,7 @@ function handler_exception($Execption): void {
             "message" => $Execption->getMessage(),
             "error" => isset($Execption->error_message) ? _($Execption->error_message) : _("Exception")
         ]);
-        http_response_code($Execption->getCode());
+        http_response_code((int)$Execption->getCode());
     }
     exit();
 }
