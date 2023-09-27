@@ -2,6 +2,7 @@
 namespace application\runner;
 
 use application\console\CacheCommandConsole;
+use application\console\DatabaseCommandConsole;
 use application\console\ExecCommandConsole;
 use application\console\HelpCommandConsole;
 use infrastructure\core\interfaces\iConsole;
@@ -13,6 +14,7 @@ class Console implements iRunner {
         '-h' => HelpCommandConsole::class,
         '-exec' => ExecCommandConsole::class,
         '-cache' => CacheCommandConsole::class,
+        '-database' => DatabaseCommandConsole::class,
     ];
 
     public function main(): void{

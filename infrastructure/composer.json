@@ -12,11 +12,15 @@
   "require": {
     "smarty/smarty": "^3",
     "delight-im/cookie": "^3",
-    "illuminate/database": "^8",
-    "illuminate/pagination": "^8",
+    "illuminate/database": "^10",
+    "illuminate/pagination": "^10",
     "vlucas/phpdotenv": "^5",
-    "gettext/gettext": "^5",
-    "ext-gettext": "*"
+    "gettext/gettext": "^5"
+  },
+  "require-dev": {
+    "ext-gettext": "*",
+    "ext-pdo": "*",
+    "ext-curl": "*"
   },
   "config": {
     "disable-tls": true

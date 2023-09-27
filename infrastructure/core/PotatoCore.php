@@ -215,6 +215,12 @@ class PotatoCore {
         $Driver->createConnection();
     }
 
+    public function restartDatabase(): void {
+        $dotenv = Dotenv::createImmutable(INFRA_PATCH );
+        $dotenv->load();
+        $this->initDatabase();
+    }
+
     private function sslRedirect(): void {
         if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === "off") {
             $location = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];

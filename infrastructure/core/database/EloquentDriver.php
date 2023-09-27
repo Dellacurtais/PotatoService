@@ -9,7 +9,7 @@ class EloquentDriver implements iDriverImplements {
     public function createConnection(){
         $capsule = new Capsule();
         $capsule->addConnection([
-            'driver'    => 'mysql',
+            'driver'    => $_ENV['DB_DRIVE'],
             'host'      => $_ENV['DB_HOSTNAME'],
             'database'  => $_ENV['DB_DATABASE'],
             'username'  => $_ENV['DB_USERNAME'],

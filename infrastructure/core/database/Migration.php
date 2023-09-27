@@ -2,31 +2,28 @@
 namespace infrastructure\core\database;
 
 use Illuminate\Database\Capsule\Manager;
+use infrastructure\core\exception\BusinessException;
 
 class Migration {
 
     const FILE_CACHE = INFRA_PATCH . "/migrations/cache.json";
     const MIGRATION_PATH = INFRA_PATCH . '/migrations/*.sql';
 
-    private \PDO $pdo;
-
-    public function __construct(){
-        $this->pdo = Manager::connection()->getPdo();
-        $this->migrate();
-    }
-
     /**
      * Execute migrations from SQL files.
      */
-    protected function migrate(): void {
+    public function migrate(): void {
         $temp_files = glob(self::MIGRATION_PATH);
         $cacheMigration = $this->getCache();
 
         foreach ($temp_files as $file){
-            if (!in_array($file, $cacheMigration)){
+            $baseName = basename($file);
+            if (!in_array($baseName, $cacheMigration)){
+                logInfo("Init File: ".$baseName);
                 $this->sqlImport($file);
-                $cacheMigration[$file] = true;
+                $cacheMigration[$baseName] = true;
                 $this->updateCache($cacheMigration);
+                logInfo("Finish File: ".$baseName);
             }
         }
     }
@@ -58,54 +55,18 @@ class Migration {
      * @param string $file The path to the SQL file.
      */
     protected function sqlImport(string $file): void {
-
-
-        // Iniciar transação
-        $this->pdo->beginTransaction();
+        Manager::connection()->beginTransaction();
+        if (Manager::connection()->transactionLevel()){
+            echo "Level: ".Manager::connection()->transactionLevel();
+        }
         try {
-            $delimiter = ';';
-            $file = fopen($file, 'r');
-            $isFirstRow = true;
-            $isMultiLineComment = false;
-            $sql = '';
-
-            while (!feof($file)) {
-                $row = fgets($file);
-                if ($isFirstRow) {
-                    $row = preg_replace('/^\x{EF}\x{BB}\x{BF}/', '', $row);
-                    $isFirstRow = false;
-                }
-                if (trim($row) == '' || preg_match('/^\s*(#|--\s)/sUi', $row)) {
-                    continue;
-                }
-                $row = trim($this->clearSQL($row, $isMultiLineComment));
-                if (preg_match('/^DELIMITER\s+[^ ]+/sUi', $row)) {
-                    $delimiter = preg_replace('/^DELIMITER\s+([^ ]+)$/sUi', '$1', $row);
-                    continue;
-                }
-                $offset = 0;
-                while (strpos($row, $delimiter, $offset) !== false) {
-                    $delimiterOffset = strpos($row, $delimiter, $offset);
-                    if ($this->isQuoted($delimiterOffset, $row)) {
-                        $offset = $delimiterOffset + strlen($delimiter);
-                    } else {
-                        $sql = trim($sql . ' ' . trim(substr($row, 0, $delimiterOffset)));
-                        $this->query($sql);
-
-                        $row = substr($row, $delimiterOffset + strlen($delimiter));
-                        $offset = 0;
-                        $sql = '';
-                    }
-                }
-                $sql = trim($sql . ' ' . $row);
+            foreach($this->parseSQLFile($file) as $command){
+                Manager::connection()->statement($command);
             }
-            if (strlen($sql) > 0) {
-                $this->query($row);
-            }
-            fclose($file);
-        }catch (\PDOException $e) {
-            $this->pdo->rollback();
-            throw new \Exception("Migration failed. Error: " . $e->getMessage());
+            Manager::connection()->commit();
+        } catch (\Exception $e) {
+            Manager::connection()->rollBack();
+            throw new BusinessException("Migration failed. Error: " . $e->getMessage());
         }
     }
 
@@ -179,7 +140,102 @@ class Migration {
      * @param string $sql The SQL string to be executed.
      */
     protected function query(string $sql): void {
-        $this->pdo->query($sql)->execute();
+        Manager::connection()->statement($sql);
+    }
+
+    function parseSQLFile($filePath) {
+        $content = file_get_contents($filePath);
+        $length = strlen($content);
+
+        $commands = [];
+        $currentCommand = "";
+        $isInsideString = false;
+        $isInsideComment = false;
+        $currentChar = '';
+        $prevChar = '';
+        for ($i = 0; $i < $length; $i++) {
+            $prevChar = $currentChar;
+            $currentChar = $content[$i];
+
+            // Check for single-line comment
+            if ($currentChar === '-' && $prevChar === '-' && !$isInsideString) {
+                $isInsideComment = true;
+            }
+
+            // Check for end of single-line comment
+            if ($isInsideComment && ($currentChar === "\n" || $currentChar === "\r")) {
+                $isInsideComment = false;
+            }
+
+            // Skip content inside comments
+            if ($isInsideComment) {
+                continue;
+            }
+
+            // Check for start of multi-line comment
+            if ($currentChar === '*' && $prevChar === '/' && !$isInsideString) {
+                $isInsideComment = true;
+            }
+
+            // Check for end of multi-line comment
+            if ($currentChar === '/' && $prevChar === '*' && $isInsideComment) {
+                $isInsideComment = false;
+                continue;
+            }
+
+            // Check for strings
+            if ($currentChar === "'" && !$isInsideComment) {
+                $isInsideString = !$isInsideString;
+            }
+
+            // Check for end of command
+            if ($currentChar === ';' && !$isInsideString && !$isInsideComment) {
+                $commands[] = trim($currentCommand . ';');
+                $currentCommand = "";
+                continue;
+            }
+
+            $currentCommand .= $currentChar;
+        }
+
+        if (trim($currentCommand) !== '') {
+            $commands[] = trim($currentCommand);
+        }
+        return $commands;
+    }
+
+    function startReadOnlyTransaction() {
+        $connection = Manager::connection();
+        $driver = $connection->getDriverName();
+
+        switch ($driver) {
+            case 'mysql':
+                $connection->unprepared('SET TRANSACTION READ ONLY');
+                break;
+            case 'pgsql':
+                $connection->unprepared('BEGIN TRANSACTION READ ONLY');
+                break;
+            case 'sqlite':
+                // SQLite não suporta explicitamente transações read-only na mesma
+                // forma que outros DBMSs. No entanto, por padrão, transações SQLite são read-only.
+                $connection->unprepared('BEGIN');
+                break;
+            case 'sqlsrv': // Microsoft SQL Server
+                // SQL Server não suporta transações read-only no mesmo sentido que outros DBMSs.
+                // No entanto, você pode definir o nível de isolamento da transação para SNAPSHOT,
+                // o que dá um efeito similar em termos de consistência dos dados lidos.
+                $connection->unprepared('SET TRANSACTION ISOLATION LEVEL SNAPSHOT');
+                break;
+            case 'oci8': // Oracle
+                // Oracle suporta transações read-only
+                $connection->unprepared('SET TRANSACTION READ ONLY');
+                break;
+            // @TODO adicionar outros?
+            default:
+                throw new Exception("DB driver $driver não suportado para transações read-only");
+        }
+
+        $connection->beginTransaction();
     }
 
 }

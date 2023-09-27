@@ -30,7 +30,7 @@ class PDOEasy {
      * @param string $sql The SQL string.
      * @return int The number of rows.
      */
-    protected function count(string $sql): int {
+    public function count(string $sql): int {
         return $this->db->query($sql)->fetchColumn();
     }
 
@@ -42,7 +42,7 @@ class PDOEasy {
      * @return \PDOStatement The resulting statement.
      * @throws \PDOException If there's a database error.
      */
-    protected function run(string $sql, array $bind=[]): \PDOStatement {
+    public function run(string $sql, array $bind=[]): \PDOStatement {
         $sql = trim($sql);
         try {
             $result = $this->db->prepare($sql);
@@ -60,7 +60,7 @@ class PDOEasy {
      * @param array $bind The binding parameters.
      * @return array The fetched rows.
      */
-    protected function get(string $sql, array $bind=[]): array {
+    public function get(string $sql, array $bind=[]): array {
         $result = $this->run($sql, $bind);
         $result->setFetchMode(\PDO::FETCH_ASSOC);
         return $result->fetchAll();
@@ -73,7 +73,7 @@ class PDOEasy {
      * @param array $bind The binding parameters.
      * @return array|null The fetched row or null if not found.
      */
-    protected function getFirst(string $sql, array $bind=[]): ?array {
+    public function getFirst(string $sql, array $bind=[]): ?array {
         $result = $this->run($sql, $bind);
         $result->setFetchMode(\PDO::FETCH_ASSOC);
         return $result->fetch();
@@ -86,7 +86,7 @@ class PDOEasy {
      * @param array $data The data to insert.
      * @return false|string The ID of the last inserted row.
      */
-    protected function create(string $table, array $data): false|string {
+    public function create(string $table, array $data): false|string {
         $fields = $this->filter($table, $data);
         $sql = "INSERT INTO " . $table . " (" . implode(", ", $fields) . ") VALUES (:" . implode(", :", $fields) . ");";
         $bind = array();
@@ -108,7 +108,7 @@ class PDOEasy {
      * @param int|null $limit Limit the number of rows.
      * @return array The fetched rows.
      */
-    protected function read(string $table, string $where="", array $bind=[], string $fields="*", ?int $limit=null): array {
+    public function read(string $table, string $where="", array $bind=[], string $fields="*", ?int $limit=null): array {
         $sql = "SELECT " . $fields . " FROM " . $table;
         if(!empty($where))
             $sql .= " WHERE " . $where;
@@ -137,7 +137,7 @@ class PDOEasy {
      * @param array $bind The binding parameters.
      * @return int The number of affected rows.
      */
-    protected function update(string $table, array $data, string $where, array $bind=[]): int {
+    public function update(string $table, array $data, string $where, array $bind=[]): int {
         $fields = $this->filter($table, $data);
         $fieldSize = sizeof($fields);
         $sql = "UPDATE " . $table . " SET ";
@@ -164,7 +164,7 @@ class PDOEasy {
      * @param array $bind The binding parameters.
      * @return int The number of deleted rows.
      */
-    protected function delete(string $table, string $where, array $bind=[]): int {
+    public function delete(string $table, string $where, array $bind=[]): int {
         $sql = "DELETE FROM " . $table . " WHERE " . $where . ";";
         $result = $this->run($sql, $bind);
         return $result->rowCount();
@@ -175,7 +175,7 @@ class PDOEasy {
      *
      * @return array The table names.
      */
-    protected function getTables(): array {
+    public function getTables(): array {
         $sql = "SHOW TABLES";
         $result = $this->run($sql);
         $result->setFetchMode(\PDO::FETCH_NUM);
@@ -195,7 +195,7 @@ class PDOEasy {
      * @param string $table The table name.
      * @return array The column details.
      */
-    protected function getColumns(string $table): array {
+    public function getColumns(string $table): array {
         $sql = "SHOW COLUMNS FROM {$table}";
         $result = $this->run($sql);
         $result->setFetchMode(\PDO::FETCH_ASSOC);
