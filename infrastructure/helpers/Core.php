@@ -1,14 +1,18 @@
 <?php
 
 use Gettext\Generator\MoGenerator;
-use Gettext\Loader\MoLoader;
 use Gettext\Loader\PoLoader;
+use infrastructure\core\attributes\Transactional;
+use infrastructure\core\exception\BusinessException;
 use infrastructure\core\general\OutputBuffer;
 use infrastructure\core\general\Session;
 use infrastructure\core\general\Smarty;
 use infrastructure\core\http\Request;
 use infrastructure\core\http\Response;
+use infrastructure\core\http\ResponseHtml;
+use infrastructure\core\http\ResponseJson;
 use infrastructure\core\http\Routes;
+use infrastructure\core\interfaces\iAttribute;
 use infrastructure\core\interfaces\iCache;
 use infrastructure\core\PotatoCore;
 
@@ -18,6 +22,18 @@ function core(): PotatoCore {
 
 function response(): Response {
     return Response::getInstance();
+}
+
+function responseJson(): ResponseJson {
+    return Response::getInstance()->json();
+}
+
+function responseCsv(): \infrastructure\core\http\ResponseCsv {
+    return Response::getInstance()->csv();
+}
+
+function responseHtml(): ResponseHtml {
+    return Response::getInstance()->html();
 }
 
 function request(): Request {
@@ -213,12 +229,12 @@ function doFilter($object, string $methodName, array $params = []): mixed {
     $transactionalInstance = null;
     foreach ($attributes as $attribute) {
         $attributeInstance = $attribute->newInstance();
-        if ($attributeInstance instanceof \infrastructure\core\attributes\Transactional) {
+        if ($attributeInstance instanceof Transactional) {
             $transactionalInstance = $attributeInstance;
-        } else if ($attributeInstance instanceof \infrastructure\core\interfaces\iAttribute){
+        } else if ($attributeInstance instanceof iAttribute){
             $attributeInstance->execute();
         }else {
-            throw new \infrastructure\core\exception\BusinessException('The provided attribute instance does not implement the iAttribute interface.');
+            throw new BusinessException('The provided attribute instance does not implement the iAttribute interface.');
         }
     }
 
@@ -276,28 +292,53 @@ function removeFiles($dir, $removeDir = false): void {
     }
 }
 
+/**
+ * @throws Exception
+ */
+function n_date(string $format): string {
+    $microtime = microtime(true);
+    $milli = sprintf("%03d",($microtime - floor($microtime)) * 1000);
+    $date = new DateTime(date('Y-m-d H:i:s') .'.'.$milli);
+    return $date->format($format);
+}
+
 function logError($message): void {
-    coloredEcho(date('Y-m-d H:i:s').": ", 'yellow');
+    if (PHP_SAPI !== 'cli') return;
+
+    coloredEcho(n_date('Y-m-d H:i:s.v')."[".getmytid() ."]".": ", 'yellow');
     coloredEcho(_($message), 'red');
     echo "\n";
 }
 
 function logWarning($message): void {
-    coloredEcho(date('Y-m-d H:i:s').": ", 'yellow');
+    if (PHP_SAPI !== 'cli') return;
+
+    coloredEcho(n_date('Y-m-d H:i:s.v')."[".getmytid() ."]".": ", 'yellow');
     coloredEcho(_($message), 'yellow');
     echo "\n";
 }
 
 function logSuccess($message): void {
-    coloredEcho(date('Y-m-d H:i:s').": ", 'yellow');
+    if (PHP_SAPI !== 'cli') return;
+
+    coloredEcho(n_date('Y-m-d H:i:s.v')."[".getmytid() ."]".": ", 'yellow');
     coloredEcho(_($message), 'green');
     echo "\n";
 }
 
 function logInfo($message): void {
-    coloredEcho(date('Y-m-d H:i:s').": ", 'yellow');
+    if (PHP_SAPI !== 'cli') return;
+
+    coloredEcho(n_date('Y-m-d H:i:s.v')."[".getmytid() ."]".": ", 'yellow');
     coloredEcho(_($message));
     echo "\n";
+}
+
+function getmytid(): string {
+    if (defined('TID')){
+        return getmypid() . '-' . TID;
+    }
+    return getmypid() . '-MAIN';
 }
 
 function coloredEcho($text, $color = "default"): void {
@@ -314,4 +355,38 @@ function coloredEcho($text, $color = "default"): void {
     ];
 
     echo $colors[$color] . $text . $colors['default'];
+}
+
+function jsonError($data) : string{
+    return json_encode(['error' => $data]);
+}
+
+function jsonSuccess($data): string{
+    return json_encode(['success' => $data]);
+}
+
+function trace(): void {
+    $e = new Exception();
+    throw new Exception($e->getTraceAsString());
+}
+
+function clearUri($uri): string {
+    $uri = str_replace('//', '/', $uri);
+    return rtrim($uri, '/');
+}
+
+function getTimeSinceInit(): float {
+    return (microtime(true) - INIT_REQUEST) * 1000;
+}
+
+function dd(...$var){
+    var_dump($var);
+    die();
+}
+
+if (!function_exists('now')){
+    function now(): \Carbon\Carbon
+    {
+        return \Carbon\Carbon::now();
+    }
 }

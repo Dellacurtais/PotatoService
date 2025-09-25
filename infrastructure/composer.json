@@ -10,10 +10,11 @@
     }
   ],
   "require": {
-    "smarty/smarty": "^3",
-    "delight-im/cookie": "^3",
-    "illuminate/database": "^8",
-    "illuminate/pagination": "^8",
+    "nesbot/carbon": "^3",
+    "smarty/smarty": "^5",
+    "illuminate/database": "^12",
+    "illuminate/pagination": "^12",
+    "jms/serializer": "^3",
     "vlucas/phpdotenv": "^5",
     "gettext/gettext": "^5",
     "ext-gettext": "*"

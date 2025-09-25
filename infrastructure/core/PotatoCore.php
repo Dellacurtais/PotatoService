@@ -4,6 +4,7 @@ namespace infrastructure\core;
 use Dotenv\Dotenv;
 use infrastructure\core\exception\BusinessException;
 use infrastructure\core\exception\InvalidRequestException;
+use infrastructure\core\general\MapRequest;
 use infrastructure\core\interfaces\iRunner;
 use infrastructure\core\traits\Singleton;
 use infrastructure\core\attributes\Cache;
@@ -11,6 +12,7 @@ use infrastructure\core\interfaces\iAttribute;
 use infrastructure\core\attributes\Transactional;
 use infrastructure\core\enums\ResponseType;
 use infrastructure\core\http\ResponseReturn;
+use JMS\Serializer\SerializerBuilder;
 
 class PotatoCore {
 
@@ -29,6 +31,9 @@ class PotatoCore {
         $dotenv->load();
 
         if (PHP_SAPI === 'cli'){
+            if (count($_ENV) === 0){
+                $_ENV = $_SERVER;
+            }
             $this->executeCli();
             exit();
         }
@@ -79,8 +84,8 @@ class PotatoCore {
         $GetRunner->onStart();
 
         $this->setLocale();
-        $this->initDatabase();
-        $GetRunner->afterDatabaseConnection();
+        //$this->initDatabase();
+        //$GetRunner->afterDatabaseConnection();
 
         $GetRunner->main();
 
@@ -121,7 +126,20 @@ class PotatoCore {
                 if ($parameter->getType()){
                     $tryClass = $parameter->getType()->getName();
                     if (class_exists($tryClass, true)){
-                        $hasValueByMap = new $tryClass();
+                        if (stripos($_SERVER["CONTENT_TYPE"] ?? '', 'application/json') !== false) {
+                            $serializer = SerializerBuilder::create()->build();
+                            $hasValueByMap = $serializer->deserialize(
+                                file_get_contents('php://input'),
+                                get_called_class(),
+                                'json'
+                            );
+                            if ($hasValueByMap instanceof MapRequest){
+                                $hasValueByMap->validateAttrs();
+                            }
+                        }else{
+                            $hasValueByMap = new $tryClass();
+                        }
+
                     }else{
                         new BusinessException('Class '.$tryClass.' não existe');
                     }
@@ -143,12 +161,14 @@ class PotatoCore {
                 if ($HasCache && !$HasCache->isInvalid){
                     $HasCache->execute();
                 }else{
-                    if ($HasCache) outputBuffer()->start();
+                    if ($HasCache)
+                        outputBuffer()->start();
 
                     $execResource = call_user_func_array([$initClass, $method], $finalAttrs);
                     $this->renderView($execResource);
 
-                    if ($HasCache) $HasCache->saveCache(outputBuffer()->returnAndClear());
+                    if ($HasCache)
+                        $HasCache->saveCache(outputBuffer()->returnAndClear());
                 }
                 $hasTransactional?->commit();
             }catch (\Exception $exception){

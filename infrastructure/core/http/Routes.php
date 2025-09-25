@@ -1,6 +1,7 @@
 <?php
 namespace infrastructure\core\http;
 
+use infrastructure\core\attributes\BaseRoute;
 use infrastructure\core\traits\Singleton;
 use infrastructure\core\attributes\Route;
 
@@ -13,28 +14,45 @@ class Routes {
      */
     private array $routes = [];
 
-    public static function registerResources(array $controllers): void {
+    public static function registerResources(array $controllers, bool $onlyCache = false): void {
         $selfInstance = self::getInstance();
         foreach($controllers as $controller) {
             $reflectionController = new \ReflectionClass($controller);
 
             self::verifyDir();
 
+            $baseRouteAttr = $reflectionController->getAttributes(BaseRoute::class, \ReflectionAttribute::IS_INSTANCEOF);
+            $baseRoute = "";
+            if ($baseRouteAttr) {
+                $baseRouteInstance = $baseRouteAttr[0]->newInstance();
+                $baseRoute = $baseRouteInstance->basePattern;
+            }
+
             foreach($reflectionController->getMethods() as $method) {
                 $attribute = current($method->getAttributes(Route::class, \ReflectionAttribute::IS_INSTANCEOF));
                 if ($attribute){
                     $route = $attribute->newInstance();
-                    $routeMap = new RouteMap($route->type, $route->route, [$controller, $method->getName()], $route->alias, $route->headers, $route->requireHeader);
+
+                    $baseSeparator = $baseRoute != '' ? '/' : '';
+                    $fullRoute = $baseRoute . $baseSeparator . $route->route;
+                    $fullRoute = clearUri($fullRoute);
+
+                    $routeMap = new RouteMap($route->type, $fullRoute, [$controller, $method->getName()], $route->alias, $route->headers, $route->requireHeader);
                     $routeMap->setStatusCode($route->code);
-                    if ($routeMap->validate(request()->requestUri)){
-                        request()->activeRoute = $routeMap;
-                        self::createCache(request()->requestUri, $routeMap);
+                    if ($onlyCache){
+                        if (!$routeMap->isDinamic){
+                            self::createCache($fullRoute, $routeMap);
+                        }
+                    }else{
+                        if ($routeMap->validate(request()->requestUri)){
+                            request()->activeRoute = $routeMap;
+                            self::createCache(request()->requestUri, $routeMap);
+                        }
                     }
                     $selfInstance->routes[] = $routeMap;
                 }
             }
         }
-
     }
 
     public function alias(string $name, array $args = []): RouteMap|null {
@@ -48,13 +66,45 @@ class Routes {
         }
     }
 
-    protected static function createCache(string $requestUri, RouteMap $routeMap){
+    protected static function createCache(string $requestUri, RouteMap $routeMap): void {
+        if ($_ENV['REDIS_ENABLE']){
+            try{
+                if ($routeMap->isDinamic){
+                    core()->redis()->setex(
+                        key: $routeMap->getType().$requestUri,
+                        expire: 3600,
+                        value: serialize($routeMap)
+                    );
+                }else{
+                    core()->redis()->set(
+                        key:$routeMap->getType().$requestUri,
+                        value: serialize($routeMap)
+                    );
+                }
+            }catch (\Exception $e){
+                static::saveCache($requestUri, $routeMap);
+            }
+        } else {
+            static::saveCache($requestUri, $routeMap);
+        }
+    }
+
+    private static function saveCache(string $requestUri, RouteMap $routeMap): void {
         file_put_contents(INFRA_PATCH . '/cache/routes/'.$_SERVER['REQUEST_METHOD'].base64_encode($requestUri).'.cache', serialize($routeMap));
     }
 
     public static function verifyRouteCache(string $requestUri): RouteMap|null {
-        if (file_exists(INFRA_PATCH . '/cache/routes/'.base64_encode($requestUri).'.cache')){
-            return unserialize(file_get_contents(INFRA_PATCH . '/cache/routes/'.$_SERVER['REQUEST_METHOD'].base64_encode($requestUri).'.cache'));
+        if ($_ENV['REDIS_ENABLE']){
+            try{
+                $checkHasCache = core()->redis()->get($_SERVER['REQUEST_METHOD'].$requestUri);
+                if ($checkHasCache){
+                    return unserialize($checkHasCache);
+                }
+            }catch (\Exception $e){}
+        } else {
+            if (file_exists(INFRA_PATCH . '/cache/routes/'.$_SERVER['REQUEST_METHOD'].base64_encode($requestUri).'.cache')){
+                return unserialize(file_get_contents(INFRA_PATCH . '/cache/routes/'.$_SERVER['REQUEST_METHOD'].base64_encode($requestUri).'.cache'));
+            }
         }
         return null;
     }

@@ -7,6 +7,10 @@ use infrastructure\core\interfaces\iValidation;
 abstract class MapRequest {
 
     public function __construct(){
+        if (stripos($_SERVER["CONTENT_TYPE"] ?? '', 'application/json') !== false) {
+            return;
+        }
+
         $Reflection = new \ReflectionClass(get_called_class());
         $AllProperties = $Reflection->getProperties();
         foreach ($AllProperties as $property) {
@@ -19,6 +23,24 @@ abstract class MapRequest {
                 if ($attrInstance instanceof iValidation){
                     $attrInstance->validate($propertyName, $propertyValue);
                 }
+            }
+        }
+    }
+
+    public function validateAttrs(): void {
+        $Reflection = new \ReflectionClass(get_called_class());
+        $AllProperties = $Reflection->getProperties();
+        foreach ($AllProperties as $property) {
+            $Attributes = $property->getAttributes();
+            $propertyName = $property->getName();
+            foreach ($Attributes as $attribute){
+                $attrInstance = $attribute->newInstance();
+                if ($attrInstance instanceof iValidation){
+                    $attrInstance->validate($propertyName, $this->$propertyName);
+                }
+            }
+            if ($this->$propertyName instanceof MapRequest){
+                $this->$propertyName->validateAttrs();
             }
         }
     }

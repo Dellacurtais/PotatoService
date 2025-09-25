@@ -11,6 +11,9 @@ class Transactional {
      * @throws \Throwable
      */
     public function begins(): void {
+        if (Manager::connection()->getPdo()->inTransaction()){
+            Manager::connection()->getPdo()->rollBack();
+        }
         Manager::connection()->beginTransaction();
     }
 
@@ -28,4 +31,24 @@ class Transactional {
         Manager::connection()->rollBack();
     }
 
+    /**
+     * Executa uma função dentro de uma transação
+     * @param callable $callback Função a ser executada dentro da transação
+     * @return mixed Retorno da função executada
+     * @throws \Throwable
+     */
+    public static function fn(callable $callback): mixed
+    {
+        $transactional = new self();
+        $transactional->begins();
+
+        try {
+            $result = $callback();
+            $transactional->commit();
+            return $result;
+        } catch (\Throwable $e) {
+            $transactional->rollback();
+            throw $e;
+        }
+    }
 }

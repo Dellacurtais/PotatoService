@@ -3,9 +3,9 @@
 namespace infrastructure\core\attributes\validation;
 
 use Attribute;
+use Carbon\Carbon;
 use infrastructure\core\exception\BusinessException;
 use infrastructure\core\interfaces\iValidation;
-use infrastructure\libraries\Moment\Moment;
 
 #[attribute(Attribute::TARGET_PROPERTY)]
 class PastOrPresent implements iValidation {
@@ -14,9 +14,9 @@ class PastOrPresent implements iValidation {
 
     public function validate($key, $value) {
         if ($this->format != null){
-            $isDate = Moment::createFromFormat($this->format, $value);
+            $isDate = Carbon::createFromFormat($this->format, $value);
         }else{
-            $isDate = new Moment($value);
+            $isDate = new Carbon($value);
         }
 
         $Now = date('Y-m-d H:i:s');
