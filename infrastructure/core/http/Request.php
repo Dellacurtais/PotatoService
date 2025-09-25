@@ -36,23 +36,23 @@ class Request {
         $this->post = $_POST;
     }
 
-    public function get(string $key, $default = null){
+    public function get(string $key, $default){
         return $this->get[$key] ?? $default;
     }
 
-    public function post(string $key, mixed $default = null){
+    public function post(string $key, mixed $default){
         return $this->post[$key] ?? $default;
     }
 
-    public function json(string $key, mixed $default = null){
+    public function json(string $key, mixed $default){
         return $this->json[$key] ?? $default;
     }
 
-    public function request(string $key = null, mixed $default = null){
+    public function request(string $key, mixed $default){
         return $_REQUEST[$key] ?? $default;
     }
 
-    public function getHeader($key = null){
+    public function getHeader($key){
         return $this->headers[$key] ?? null;
     }
 

@@ -5,6 +5,7 @@ function handler_exception($Execption): void {
         echo "Error Code: ".$Execption->getCode()."\n";
         echo "Error Message: ".$Execption->getMessage();
     }else{
+        http_response_code((int)$Execption->getCode());
         response()->setHeaderType(\infrastructure\core\enums\ContentType::CONTENT_JSON);
         echo json_encode([
             "timestamp" => time(),
@@ -14,7 +15,6 @@ function handler_exception($Execption): void {
             "message" => $Execption->getMessage(),
             "error" => isset($Execption->error_message) ? _($Execption->error_message) : _("Exception")
         ]);
-        http_response_code((int)$Execption->getCode());
     }
     exit();
 }
