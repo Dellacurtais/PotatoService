@@ -11,6 +11,7 @@ use infrastructure\core\attributes\Transactional;
 use infrastructure\core\enums\ContentType;
 use infrastructure\core\enums\HttpRequest;
 use infrastructure\core\enums\StatusCode;
+use infrastructure\core\http\ResponseJson;
 
 class DemoQueryResource {
 
@@ -19,9 +20,11 @@ class DemoQueryResource {
 
     //#[Transactional]
     #[Route(route: 'Home', code: StatusCode::OK, type: HttpRequest::GET, headers: [ ContentType::CONTENT_JSON ])]
-    public function exampleRouting(): void {
-
-        doFilter($this->testeService, 'execute');
+    public function exampleRouting(): ResponseJson {
+        return ResponseJson::build(
+            $this->testeService->teste(),
+            "Ok"
+        );
     }
 
     #[Route(route: 'testMapRequest', code: StatusCode::OK, type: HttpRequest::GET, headers: [ ContentType::CONTENT_JSON ])]

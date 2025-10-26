@@ -6,7 +6,7 @@ class BusinessException extends \Exception{
 
     public $error_message = "BusinessException";
 
-    public function __construct($message = "", $code = 400, Throwable $previous = null){
+    public function __construct($message = "", $code = 400, ?Throwable $previous = null){
         $message = empty($message) ? $this->getClassName() : $message;
         parent::__construct(_($message), $code, $previous);
     }

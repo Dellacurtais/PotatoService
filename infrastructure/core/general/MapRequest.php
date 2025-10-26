@@ -7,19 +7,15 @@ use infrastructure\core\interfaces\iValidation;
 abstract class MapRequest {
 
     public function __construct(){
-        if (stripos($_SERVER["CONTENT_TYPE"] ?? '', 'application/json') !== false) {
-            return;
-        }
-
-        $Reflection = new \ReflectionClass(get_called_class());
-        $AllProperties = $Reflection->getProperties();
-        foreach ($AllProperties as $property) {
-            $Attributes = $property->getAttributes();
-            $propertyName = $property->getName();
+        $meta = ReflectionCache::get(get_called_class());
+        foreach ($meta['properties'] as $propertyName => $attributesMeta) {
             $propertyValue = request()->$propertyName ?? null;
             $this->$propertyName =  $propertyValue;
-            foreach ($Attributes as $attribute){
-                $attrInstance = $attribute->newInstance();
+            foreach ($attributesMeta as $attrMeta){
+                $attrClass = $attrMeta['class'];
+                $args = $attrMeta['args'] ?? [];
+                // Instantiate attribute without reflecting target class again
+                $attrInstance = new $attrClass(...$args);
                 if ($attrInstance instanceof iValidation){
                     $attrInstance->validate($propertyName, $propertyValue);
                 }
@@ -28,13 +24,12 @@ abstract class MapRequest {
     }
 
     public function validateAttrs(): void {
-        $Reflection = new \ReflectionClass(get_called_class());
-        $AllProperties = $Reflection->getProperties();
-        foreach ($AllProperties as $property) {
-            $Attributes = $property->getAttributes();
-            $propertyName = $property->getName();
-            foreach ($Attributes as $attribute){
-                $attrInstance = $attribute->newInstance();
+        $meta = ReflectionCache::get(get_called_class());
+        foreach ($meta['properties'] as $propertyName => $attributesMeta) {
+            foreach ($attributesMeta as $attrMeta){
+                $attrClass = $attrMeta['class'];
+                $args = $attrMeta['args'] ?? [];
+                $attrInstance = new $attrClass(...$args);
                 if ($attrInstance instanceof iValidation){
                     $attrInstance->validate($propertyName, $this->$propertyName);
                 }

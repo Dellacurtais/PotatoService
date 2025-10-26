@@ -5,8 +5,18 @@ use infrastructure\core\enums\ResponseType;
 
 class ResponseJson extends ResponseReturn {
 
+    public static function build($response, $message = "", $status = 200): ResponseJson {
+        return responseJson()
+            ->setResponse($response)
+            ->setMessage($message)
+            ->setStatus($status);
+    }
+
     public function __construct(){
         parent::__construct(ResponseType::JSON );
+        $this->message = '';
+        $this->status = 200;
+        $this->params = [];
     }
 
     public function setStatus(string $status): self {
@@ -37,6 +47,17 @@ class ResponseJson extends ResponseReturn {
     }
 
     public function toJson(){
-        return json_encode(["status" => $this->getStatus(), "message" => $this->getMessage(), "response" => $this->getResponse()]);
+        $data = [
+            "status" => $this->getStatus(),
+            "message" => $this->getMessage(),
+            "response" => $this->getResponse(),
+            "processTime" => getTimeSinceInit(),
+        ];
+        if (function_exists('profiler_enabled') && profiler_enabled()){
+            $data['debug'] = [
+                'profile' => profiler_report(),
+            ];
+        }
+        return json_encode($data);
     }
 }

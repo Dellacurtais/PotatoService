@@ -5,10 +5,10 @@ use infrastructure\core\enums\ResponseType;
 
 abstract class ResponseReturn {
 
-    protected string|null $file;
+    protected string|null $file = null;
     protected mixed $params = [];
-    protected string|null $message;
-    protected string|null $status;
+    protected string|null $message = null;
+    protected string|null $status = null;
     protected ResponseType $type = ResponseType::HTML;
 
     public function __construct(ResponseType $type){

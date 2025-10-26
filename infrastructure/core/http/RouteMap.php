@@ -12,6 +12,7 @@ class RouteMap {
     private array|null $properties = [];
     private array|null $params = null;
     public StatusCode|null $statusCode = null;
+    public bool $isDinamic = false; // true when the route contains path params
 
     public function __construct(
         private HttpRequest $httpRequest,
@@ -25,6 +26,7 @@ class RouteMap {
         if (count($haveArgs[0]) > 0){
             $this->pattern = str_replace($haveArgs[0], '([^/]+)', $this->route);
             $this->properties = $haveArgs[1];
+            $this->isDinamic = true;
         }
         if (empty($this->alias))
             $this->alias = $this->route;
@@ -80,5 +82,19 @@ class RouteMap {
 
     public function toUri(array $args): string {
         return base_url(str_replace($this->properties, $args, $this->route));
+    }
+
+    public function getType(): string {
+        return match($this->httpRequest) {
+            HttpRequest::POST => 'POST',
+            HttpRequest::PUT => 'PUT',
+            HttpRequest::DELETE => 'DELETE',
+            HttpRequest::PATCH => 'PATCH',
+            default => 'GET'
+        };
+    }
+
+    public function getRoute(): string {
+        return $this->route;
     }
 }

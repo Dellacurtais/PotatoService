@@ -19,7 +19,7 @@ class CacheService implements iCache {
         echo $data;
     }
 
-    public function clearCache($key = null): void {
+    public function clearCache($key): void {
         $cacheFile = INFRA_PATCH . '/cache/request/' . base64_encode($key) .".cache";
         if (is_file($cacheFile)){
             @unlink($cacheFile);

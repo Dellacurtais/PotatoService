@@ -4,7 +4,6 @@ namespace infrastructure\core;
 use Dotenv\Dotenv;
 use infrastructure\core\exception\BusinessException;
 use infrastructure\core\exception\InvalidRequestException;
-use infrastructure\core\general\MapRequest;
 use infrastructure\core\interfaces\iRunner;
 use infrastructure\core\traits\Singleton;
 use infrastructure\core\attributes\Cache;
@@ -12,7 +11,7 @@ use infrastructure\core\interfaces\iAttribute;
 use infrastructure\core\attributes\Transactional;
 use infrastructure\core\enums\ResponseType;
 use infrastructure\core\http\ResponseReturn;
-use JMS\Serializer\SerializerBuilder;
+use infrastructure\core\general\ReflectionCache;
 
 class PotatoCore {
 
@@ -25,8 +24,9 @@ class PotatoCore {
      * @throws \Exception
      */
     public function __construct(){
+        profiler_mark("InitCore");
         self::$instance = $this;
-
+        profiler_mark("InitCore");
         $dotenv = Dotenv::createImmutable(INFRA_PATCH );
         $dotenv->load();
 
@@ -60,6 +60,7 @@ class PotatoCore {
         }
 
         $this->initDatabase();
+
         $GetRunner->afterDatabaseConnection();
 
         if (request()->activeRoute == null)
@@ -68,9 +69,9 @@ class PotatoCore {
         if (request()->activeRoute == null)
             throw new InvalidRequestException();
 
-        $this->execute();
-
         http_response_code(request()->activeRoute->statusCode->value);
+
+        $this->execute();
 
         $GetRunner->onFinish();
     }
@@ -98,48 +99,81 @@ class PotatoCore {
         $attrs = request()->activeRoute->getParams();
 
         if (class_exists($class)) {
-            $initClass = new $class();
-            $verifyClass = new \ReflectionClass($initClass);
+            $meta = ReflectionCache::get($class);
 
+            $ctorArgs = [];
+            $ctorParams = $meta['constructor']['parameters'] ?? [];
+            foreach ($ctorParams as $p) {
+                $nameVar = $p['name'] ?? '';
+                $hasValueByMap = "";
+                $typeName = $p['type'] ?? null;
+                $isBuiltin = $p['isBuiltin'] ?? true;
+                if ($typeName && !$isBuiltin && class_exists($typeName, true)) {
+                    $hasValueByMap = new $typeName();
+                }
+                if ($nameVar === 'request') {
+                    $ctorArgs[] = request();
+                } elseif ($nameVar === 'response') {
+                    $ctorArgs[] = response();
+                } else {
+                    $ctorArgs[] = $hasValueByMap;
+                }
+            }
+            $initClass = new $class(...$ctorArgs);
+            reflection_properties($initClass, $meta['properties'] ?? []);
 
-            $properties = $verifyClass->getProperties();
-            reflection_properties($initClass, $properties);
-
-            $MethodRef = $verifyClass->getMethod($method);
-            $totalParams = $MethodRef->getParameters();
-            $Attributes = $MethodRef->getAttributes();
+            $methodMeta = $meta['methods'][$method] ?? ['attributes' => [], 'parameters' => []];
+            $Attributes = $methodMeta['attributes'] ?? [];
 
             $HasCache = null;
             $hasTransactional = null;
-            foreach($Attributes as $attribute) {
-                $Build = $attribute->newInstance();
+            foreach ($Attributes as $attribute) {
+                $attrClass = $attribute['class'] ?? null;
+                if (!$attrClass || !class_exists($attrClass)) continue;
+                $args = $attribute['args'] ?? [];
+
+                $ordered = [];
+                $attrMeta = ReflectionCache::get($attrClass);
+                $ctorParamsAttr = $attrMeta['constructor']['parameters'] ?? [];
+                foreach ($ctorParamsAttr as $idx => $p) {
+                    $pName = $p['name'] ?? '';
+                    if (array_key_exists($pName, $args)) {
+                        $ordered[] = $args[$pName];
+                        continue;
+                    }
+                    if (array_key_exists($idx, $args)) {
+                        $ordered[] = $args[$idx];
+                        continue;
+                    }
+                    if (!empty($p['hasDefault']) && $p['hasDefault'] === true) {
+                        $ordered[] = $p['default'] ?? null;
+                        continue;
+                    }
+                    if (!empty($p['allowsNull'])) {
+                        $ordered[] = null;
+                        continue;
+                    }
+
+                    throw new BusinessException('Parâmetro obrigatório ausente ao instanciar atributo ' . $attrClass . '::$' . $pName);
+                }
+
+                $Build = new $attrClass(...$ordered);
                 if ($Build instanceof Cache) $HasCache = $Build;
                 if ($Build instanceof Transactional) $hasTransactional = $Build;
                 if ($Build instanceof iAttribute) $Build->execute();
             }
 
             $finalAttrs = [];
+            $totalParams = $methodMeta['parameters'] ?? [];
             foreach ($totalParams as $parameter) {
-                $nameVar = $parameter->getName();
+                $nameVar = $parameter['name'] ?? '';
 
                 $hasValueByMap = "";
-                if ($parameter->getType()){
-                    $tryClass = $parameter->getType()->getName();
+                $tryClass = $parameter['type'] ?? null;
+                $isBuiltin = $parameter['isBuiltin'] ?? true;
+                if ($tryClass && !$isBuiltin) {
                     if (class_exists($tryClass, true)){
-                        if (stripos($_SERVER["CONTENT_TYPE"] ?? '', 'application/json') !== false) {
-                            $serializer = SerializerBuilder::create()->build();
-                            $hasValueByMap = $serializer->deserialize(
-                                file_get_contents('php://input'),
-                                get_called_class(),
-                                'json'
-                            );
-                            if ($hasValueByMap instanceof MapRequest){
-                                $hasValueByMap->validateAttrs();
-                            }
-                        }else{
-                            $hasValueByMap = new $tryClass();
-                        }
-
+                        $hasValueByMap = new $tryClass();
                     }else{
                         new BusinessException('Class '.$tryClass.' não existe');
                     }
@@ -167,8 +201,9 @@ class PotatoCore {
                     $execResource = call_user_func_array([$initClass, $method], $finalAttrs);
                     $this->renderView($execResource);
 
-                    if ($HasCache)
+                    if ($HasCache){
                         $HasCache->saveCache(outputBuffer()->returnAndClear());
+                    }
                 }
                 $hasTransactional?->commit();
             }catch (\Exception $exception){

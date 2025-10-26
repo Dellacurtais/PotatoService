@@ -19,4 +19,9 @@ class TesteService extends Services {
     }
 
 
+    function teste()
+    {
+        return ["aaa" => 1 ];
+    }
+
 }

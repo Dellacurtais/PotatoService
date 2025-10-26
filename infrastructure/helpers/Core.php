@@ -106,7 +106,37 @@ function getRequestHeaders(): array|null{
 }
 
 function reflection_properties(&$object, $properties): void {
+    if (!is_array($properties)) return;
+
+    // Detect if we're dealing with the new cached metadata format or old ReflectionProperty[]
+    $first = reset($properties);
+
+    // New format: [ 'propName' => [ ['class' => FQCN, 'args' => [...]], ... ] ]
+    if ($first === false || is_array($first)) {
+        foreach ($properties as $propertyName => $attrs) {
+            if (!is_array($attrs)) continue;
+            foreach ($attrs as $attr) {
+                $attrClass = $attr['class'] ?? null;
+                $args = $attr['args'] ?? [];
+                if ($attrClass === \infrastructure\core\attributes\Autowired::class) {
+                    // Ensure args is a list (positional) as expected by Autowired::__construct($class, $args = [])
+                    if (!is_array($args)) {
+                        $args = [$args];
+                    } else {
+                        // keep only values to drop any named keys
+                        $args = array_values($args);
+                    }
+                    $build = new \infrastructure\core\attributes\Autowired(...$args);
+                    $object->$propertyName = $build->getClass();
+                }
+            }
+        }
+        return;
+    }
+
+    // Old format: array of ReflectionProperty
     foreach ($properties as $property){
+        if (!$property instanceof \ReflectionProperty) continue;
         $propertyName = $property->getName();
         $Attributes = $property->getAttributes();
         foreach($Attributes as $attribute) {
@@ -377,6 +407,47 @@ function clearUri($uri): string {
 
 function getTimeSinceInit(): float {
     return (microtime(true) - INIT_REQUEST) * 1000;
+}
+
+function profiler_enabled(): bool {
+    // Default disabled if env not loaded yet
+    $flag = $_ENV['DEBUG_PROFILER'] ?? $_SERVER['DEBUG_PROFILER'] ?? null;
+    if ($flag === null) return false;
+    if (is_bool($flag)) return $flag;
+    $flag = strtolower((string)$flag);
+    return in_array($flag, ['1','true','yes','on'], true);
+}
+
+function profiler_mark(string $label): void {
+    if (!profiler_enabled()) return;
+    static $marks = null;
+    if ($marks === null) {
+        $marks = [];
+    }
+    $marks[] = [
+        't' => getTimeSinceInit(),
+        'mem' => memory_get_usage(true),
+        'label' => $label,
+    ];
+    $GLOBALS['__POTATO_PROFILER_MARKS'] = $marks;
+}
+
+function profiler_report(): array {
+    if (!profiler_enabled()) return [];
+    $marks = $GLOBALS['__POTATO_PROFILER_MARKS'] ?? [];
+    $out = [];
+    $prevT = null;
+    foreach ($marks as $m) {
+        $delta = $prevT === null ? 0.0 : ($m['t'] - $prevT);
+        $out[] = [
+            'label' => $m['label'],
+            't_ms' => round($m['t'], 3),
+            'delta_ms' => round($delta, 3),
+            'mem_bytes' => $m['mem'],
+        ];
+        $prevT = $m['t'];
+    }
+    return $out;
 }
 
 function dd(...$var){
